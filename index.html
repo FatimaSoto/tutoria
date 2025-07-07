@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geoportal Catastro El Pangui</title>
+    <title>Geovisor de Predios</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
             margin: 0;
@@ -12,657 +13,705 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(45deg, #3498db, #2ecc71);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-        
-        .nav-menu a {
-            text-decoration: none;
-            color: #2c3e50;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-        }
-        
-        .nav-menu a:hover {
-            background: linear-gradient(45deg, #3498db, #2ecc71);
-            color: white;
-            transform: translateY(-2px);
         }
         
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-        
-        .hero {
-            text-align: center;
-            padding: 4rem 0;
-            color: white;
-        }
-        
-        .hero h1 {
-            font-size: 3.5em;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            animation: fadeInUp 1s ease-out;
-        }
-        
-        .hero p {
-            font-size: 1.3em;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-            animation: fadeInUp 1s ease-out 0.3s both;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(45deg, #e74c3c, #f39c12);
-            color: white;
-            padding: 1rem 2rem;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            animation: fadeInUp 1s ease-out 0.6s both;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-        
-        .features-section {
-            background: white;
-            margin: 3rem 0;
-            padding: 4rem 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: 2.5em;
-            color: #2c3e50;
-            margin-bottom: 3rem;
-            position: relative;
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(45deg, #3498db, #2ecc71);
-            border-radius: 2px;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-        
-        .feature-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 2rem;
-            border-radius: 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.05);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.5s ease;
-        }
-        
-        .feature-card:hover::before {
-            left: 100%;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-        }
-        
-        .feature-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1rem;
-            background: linear-gradient(45deg, #3498db, #2ecc71);
-            border-radius: 50%;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-            color: white;
-            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.3);
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
         }
         
-        .feature-card h3 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            font-size: 1.5em;
-        }
-        
-        .feature-card p {
-            color: #555;
-            line-height: 1.6;
-        }
-        
-        .stats-section {
-            background: rgba(255, 255, 255, 0.1);
+        .sidebar {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            padding: 3rem 2rem;
-            border-radius: 20px;
-            margin: 3rem 0;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            text-align: center;
-        }
-        
-        .stat-item {
-            color: white;
-        }
-        
-        .stat-number {
-            font-size: 3em;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .stat-label {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        
-        .footer {
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            margin-top: 3rem;
-        }
-        
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-links a:hover {
-            color: #3498db;
-        }
-        
-        .map-section {
-            background: white;
-            margin: 3rem 0;
-            padding: 4rem 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
         }
         
         .map-container {
-            max-width: 100%;
-            margin-top: 2rem;
-        }
-        
-        .map-controls {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-        
-        .map-btn {
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 25px;
-            background: linear-gradient(45deg, #e9ecef, #f8f9fa);
-            color: #2c3e50;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .map-btn:hover, .map-btn.active {
-            background: linear-gradient(45deg, #3498db, #2ecc71);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
         
         #map {
+            height: 100%;
             width: 100%;
-            height: 600px;
-            border-radius: 15px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-            overflow: hidden;
         }
         
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
         }
         
-        @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
-            }
-            
-            .hero h1 {
-                font-size: 2.5em;
-            }
-            
-            .hero p {
-                font-size: 1.1em;
-            }
-            
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .footer-links {
-                flex-direction: column;
-                gap: 1rem;
-            }
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .filters {
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .filter-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .property-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .property-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .property-info div {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .property-info strong {
+            color: #667eea;
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px;
+        }
+        
+        .leaflet-popup-content {
+            margin: 10px 15px;
+            line-height: 1.4;
+        }
+        
+        .popup-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .popup-field {
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        
+        .popup-field strong {
+            color: #667eea;
+        }
+        
+        .zoom-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .map-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .location-status {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .location-status.loading {
+            color: #667eea;
+        }
+        
+        .location-status.success {
+            color: #28a745;
+        }
+        
+        .location-status.error {
+            color: #dc3545;
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="nav-container">
-            <div class="logo">
-                <div class="logo-icon">EP</div>
-                <span style="font-weight: bold; color: #2c3e50;">Geoportal El Pangui</span>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>🏘️ Geovisor de Predios</h1>
+                <p>Visualización de predios catastrales</p>
             </div>
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="#inicio">Inicio</a></li>
-                    <li><a href="#servicios">Servicios</a></li>
-                    <li><a href="#mapas">Mapas</a></li>
-                    <li><a href="#consultas">Consultas</a></li>
-                    <li><a href="#contacto">Contacto</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <section class="hero">
-            <div class="container">
-                <h1>Geoportal Catastro El Pangui</h1>
-                <p>Sistema Integral de Información Geográfica y Catastral del Cantón El Pangui</p>
-                <a href="#mapas" class="cta-button">Explorar Mapas</a>
+            
+            <div id="locationStatus" class="location-status">
+                📍 Inicializando mapa...
             </div>
-        </section>
-
-        <div class="container">
-            <section class="stats-section">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">12,500+</div>
-                        <div class="stat-label">Predios Registrados</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">850</div>
-                        <div class="stat-label">Km² de Territorio</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">24/7</div>
-                        <div class="stat-label">Acceso en Línea</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">99.9%</div>
-                        <div class="stat-label">Disponibilidad</div>
-                    </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="totalPredios">0</h3>
+                    <p>Total Predios</p>
                 </div>
-            </section>
-
-            <section class="map-section" id="mapas">
-                <h2 class="section-title">Mapa Interactivo</h2>
-                <div class="map-container">
-                    <div class="map-controls">
-                        <button class="map-btn active" onclick="showSatellite()">Vista Satelital</button>
-                        <button class="map-btn" onclick="showTerrain()">Terreno</button>
-                        <button class="map-btn" onclick="showRoadmap()">Calles</button>
-                        <button class="map-btn" onclick="showHybrid()">Híbrido</button>
-                    </div>
-                    <div id="map"></div>
+                <div class="stat-card">
+                    <h3 id="prediosVisible">0</h3>
+                    <p>Visibles</p>
                 </div>
-            </section>
-
-            <section class="features-section" id="servicios">
-                <h2 class="section-title">Nuestros Servicios</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">🗺️</div>
-                        <h3>Consulta Catastral</h3>
-                        <p>Accede a información detallada de predios, propiedades y linderos del cantón con datos actualizados en tiempo real.</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">🌐</div>
-                        <h3>Mapas Interactivos</h3>
-                        <p>Visualiza y navega por mapas territoriales de alta resolución con capas temáticas y herramientas de análisis espacial.</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">📋</div>
-                        <h3>Servicios Digitales</h3>
-                        <p>Realiza trámites catastrales, solicita certificados y consulta el estado de tus gestiones de manera completamente digital.</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">📊</div>
-                        <h3>Análisis Territorial</h3>
-                        <p>Herramientas avanzadas para análisis de uso de suelo, planificación urbana y estudios de desarrollo territorial.</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">🔍</div>
-                        <h3>Búsqueda Avanzada</h3>
-                        <p>Sistema de búsqueda inteligente por código catastral, propietario, dirección o coordenadas geográficas.</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">📱</div>
-                        <h3>Acceso Móvil</h3>
-                        <p>Plataforma completamente responsive y optimizada para dispositivos móviles con funcionalidad offline.</p>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-links">
-                <a href="#privacidad">Política de Privacidad</a>
-                <a href="#terminos">Términos de Uso</a>
-                <a href="#ayuda">Centro de Ayuda</a>
-                <a href="#api">API Desarrolladores</a>
-                <a href="#descargas">Descargas</a>
             </div>
-            <p>&copy; 2025 Gobierno Autónomo Descentralizado Municipal de El Pangui</p>
-            <p>Sistema de Información Geográfica y Catastral - Todos los derechos reservados</p>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="searchId">Buscar por ID Predio:</label>
+                    <input type="text" id="searchId" placeholder="Ingrese ID del predio">
+                </div>
+                
+                <button class="btn" onclick="aplicarFiltros()">🔍 Buscar</button>
+                <button class="btn" onclick="limpiarFiltros()">🗑️ Limpiar</button>
+                <button class="btn" onclick="exportarDatos()">📊 Exportar Datos</button>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Cargando datos...</p>
+            </div>
+            
+            <div id="propertyInfo" class="property-info" style="display: none;">
+                <h3>Información del Predio</h3>
+                <div id="propertyDetails"></div>
+            </div>
         </div>
-    </footer>
+        
+        <div class="map-container">
+            <div id="mapLoading" class="map-loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Cargando predios...</p>
+            </div>
+            <div class="zoom-info">
+                <div>Zoom: <span id="currentZoom">10</span></div>
+                <div>Predios: <span id="currentPredios">0</span></div>
+            </div>
+            <div id="map"></div>
+        </div>
+    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Variables globales del mapa
+        // Configuración de la base de datos
+        const SUPABASE_URL = 'https://dpxlpyyelqbwudkhdtbw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweGxweXllbHFid3Vka2hkdGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxMjMwNjksImV4cCI6MjA2NTY5OTA2OX0.j8evYP_owzPeJmZ5GgdHnjpg1dYE4DShcI9fYYA8xG8';
+        
+        // Coordenadas de El Pangui, Zamora Chinchipe
+        const EL_PANGUI_COORDS = [-3.6167, -78.55];
+        
+        // Variables globales
         let map;
-        let satelliteLayer, terrainLayer, roadmapLayer, hybridLayer;
-
+        let prediosLayer;
+        let currentData = [];
+        let allData = [];
+        let isLoading = false;
+        let currentZoom = 10;
+        let loadTimeout;
+        
+        // Configuración de límites por zoom
+        const ZOOM_LIMITS = {
+            8: 50,   // Zoom bajo: pocos predios
+            10: 100,  // Zoom medio: más predios
+            12: 250,  // Zoom alto: muchos predios
+            14: 500,  // Zoom muy alto: máximo predios
+            16: 1000  // Zoom máximo: todos los predios visibles
+        };
+        
         // Inicializar mapa
         function initMap() {
-            // Coordenadas de El Pangui, Ecuador (aproximadas)
-            const elPanguiCoords = [-3.6119, -78.6044];
+            updateLocationStatus('Inicializando mapa centrado en El Pangui...', 'loading');
             
-            // Crear el mapa
-            map = L.map('map').setView(elPanguiCoords, 12);
-
-            // Capas de mapas
-            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-            });
-
-            terrainLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {
-                attribution: '&copy; Esri &mdash; Source: US National Park Service'
-            });
-
-            roadmapLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            });
-
-            hybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-            });
-
-            // Agregar capa satelital por defecto
-            satelliteLayer.addTo(map);
-
-            // Agregar marcador en El Pangui
-            const marker = L.marker(elPanguiCoords).addTo(map);
-            marker.bindPopup(`
-                <div style="text-align: center; font-family: Arial, sans-serif;">
-                    <h3 style="color: #2c3e50; margin-bottom: 10px;">El Pangui</h3>
-                    <p style="margin: 5px 0;"><strong>Cantón:</strong> El Pangui</p>
-                    <p style="margin: 5px 0;"><strong>Provincia:</strong> Zamora Chinchipe</p>
-                    <p style="margin: 5px 0;"><strong>País:</strong> Ecuador</p>
-                    <p style="margin: 5px 0; color: #666;">Sede del Geoportal Catastral</p>
-                </div>
-            `).openPopup();
-
-            // Agregar controles de zoom
-            L.control.zoom({
-                position: 'topright'
-            }).addTo(map);
-
-            // Agregar control de escala
-            L.control.scale().addTo(map);
-
-            // Polígono de ejemplo para delimitar zona catastral
-            const polygonCoords = [
-                [-3.590, -78.620],
-                [-3.590, -78.580],
-                [-3.630, -78.580],
-                [-3.630, -78.620]
-            ];
-
-            const polygon = L.polygon(polygonCoords, {
-                color: '#3498db',
-                fillColor: '#3498db',
-                fillOpacity: 0.2,
-                weight: 2
-            }).addTo(map);
-
-            polygon.bindPopup(`
-                <div style="text-align: center; font-family: Arial, sans-serif;">
-                    <h4 style="color: #2c3e50;">Zona Catastral</h4>
-                    <p>Área de cobertura del sistema</p>
-                </div>
-            `);
-        }
-
-        // Funciones para cambiar tipos de mapa
-        function showSatellite() {
-            updateActiveButton(0);
-            map.removeLayer(terrainLayer);
-            map.removeLayer(roadmapLayer);
-            map.removeLayer(hybridLayer);
-            map.addLayer(satelliteLayer);
-        }
-
-        function showTerrain() {
-            updateActiveButton(1);
-            map.removeLayer(satelliteLayer);
-            map.removeLayer(roadmapLayer);
-            map.removeLayer(hybridLayer);
-            map.addLayer(terrainLayer);
-        }
-
-        function showRoadmap() {
-            updateActiveButton(2);
-            map.removeLayer(satelliteLayer);
-            map.removeLayer(terrainLayer);
-            map.removeLayer(hybridLayer);
-            map.addLayer(roadmapLayer);
-        }
-
-        function showHybrid() {
-            updateActiveButton(3);
-            map.removeLayer(satelliteLayer);
-            map.removeLayer(terrainLayer);
-            map.removeLayer(roadmapLayer);
-            map.addLayer(hybridLayer);
+            // Crear mapa centrado en El Pangui
+            map = L.map('map').setView(EL_PANGUI_COORDS, 10);
             
-            // Agregar etiquetas de calles sobre la vista satelital
-            const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-                attribution: ''
+            // Añadir capa base
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Añadir capa de satélite como opción
+            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
             });
-            labelsLayer.addTo(map);
+            
+            // Control de capas
+            const baseMaps = {
+                "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'),
+                "Satélite": satellite
+            };
+            
+            L.control.layers(baseMaps).addTo(map);
+            
+            // Crear grupo de capas para predios
+            prediosLayer = L.layerGroup().addTo(map);
+            
+            // Eventos del mapa
+            map.on('zoomend', onMapChange);
+            map.on('moveend', onMapChange);
+            
+            // Actualizar zoom inicial
+            currentZoom = map.getZoom();
+            document.getElementById('currentZoom').textContent = currentZoom;
+            
+            updateLocationStatus('Mapa centrado en El Pangui - Listo para cargar datos', 'success');
         }
-
-        function updateActiveButton(activeIndex) {
-            const buttons = document.querySelectorAll('.map-btn');
-            buttons.forEach((btn, index) => {
-                if (index === activeIndex) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
+        
+        // Función que se ejecuta cuando cambia el mapa
+        function onMapChange() {
+            const newZoom = map.getZoom();
+            const zoomChanged = newZoom !== currentZoom;
+            currentZoom = newZoom;
+            document.getElementById('currentZoom').textContent = currentZoom;
+            
+            // Cancelar carga anterior si existe
+            if (loadTimeout) {
+                clearTimeout(loadTimeout);
+            }
+            
+            // Cargar datos con delay para evitar múltiples cargas
+            loadTimeout = setTimeout(() => {
+                cargarDatosPorZoom(zoomChanged);
+            }, 500);
         }
-
-        // Inicializar mapa cuando se carga la página
-        document.addEventListener('DOMContentLoaded', function() {
-            // Esperar un poco para que se cargue Leaflet
-            setTimeout(initMap, 500);
-        });
-        // Smooth scrolling para enlaces internos
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Animación de números en las estadísticas
-        function animateNumbers() {
-            const numbers = document.querySelectorAll('.stat-number');
-            numbers.forEach(number => {
-                const target = parseInt(number.textContent.replace(/[^\d]/g, ''));
-                const duration = 2000;
-                const step = target / (duration / 16);
-                let current = 0;
+        
+        // Función para cargar datos según el zoom
+        async function cargarDatosPorZoom(zoomChanged = false) {
+            if (isLoading) return;
+            
+            const limit = getLimitForZoom(currentZoom);
+            const bounds = map.getBounds();
+            
+            // Solo recargar si cambió el zoom significativamente o si es la primera carga
+            if (zoomChanged || prediosLayer.getLayers().length === 0) {
+                await cargarDatos({}, limit, bounds);
+            }
+        }
+        
+        // Obtener límite de predios según zoom
+        function getLimitForZoom(zoom) {
+            if (zoom <= 8) return ZOOM_LIMITS[8];
+            if (zoom <= 10) return ZOOM_LIMITS[10];
+            if (zoom <= 12) return ZOOM_LIMITS[12];
+            if (zoom <= 14) return ZOOM_LIMITS[14];
+            return ZOOM_LIMITS[16];
+        }
+        
+        // Función para cargar datos de Supabase
+        async function cargarDatos(filtros = {}, limit = null, bounds = null) {
+            if (isLoading) return;
+            
+            isLoading = true;
+            mostrarMapLoading(true);
+            
+            try {
+                // Usar el nombre correcto de la tabla
+                let query = `${SUPABASE_URL}/rest/v1/Predios_4326?select=*`;
                 
-                const timer = setInterval(() => {
-                    current += step;
-                    if (current >= target) {
-                        current = target;
-                        clearInterval(timer);
+                // Aplicar filtros (solo búsqueda por ID ahora)
+                const conditions = [];
+                if (filtros.id_pred) conditions.push(`ID_PRED.ilike.%${filtros.id_pred}%`);
+                
+                // Filtro por área visible (bounds) si está disponible
+                if (bounds && !filtros.id_pred) {
+                    // Nota: Este filtro espacial podría necesitar ajustes según la estructura de datos
+                    // conditions.push(`geom.intersects.${bounds}`);
+                }
+                
+                if (conditions.length > 0) {
+                    query += `&${conditions.join('&')}`;
+                }
+                
+                // Aplicar límite basado en zoom
+                const finalLimit = limit || getLimitForZoom(currentZoom);
+                query += `&limit=${finalLimit}`;
+                
+                // Ordenar por área para mostrar primero los predios más grandes
+                query += '&order=Shape_Area.desc';
+                
+                console.log('Query URL:', query);
+                console.log('Límite para zoom', currentZoom, ':', finalLimit);
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
                     }
-                    
-                    const suffix = number.textContent.replace(/[\d,]/g, '');
-                    number.textContent = Math.floor(current).toLocaleString() + suffix;
-                }, 16);
-            });
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error ${response.status}: ${response.statusText}\n${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Datos recibidos:', data.length, 'registros');
+                
+                currentData = data;
+                
+                // Actualizar estadísticas
+                document.getElementById('totalPredios').textContent = data.length;
+                document.getElementById('prediosVisible').textContent = data.length;
+                document.getElementById('currentPredios').textContent = data.length;
+                
+                // Cargar datos en el mapa
+                cargarPrediosEnMapa(data);
+                
+                updateLocationStatus(`Cargados ${data.length} predios (zoom ${currentZoom})`, 'success');
+                
+            } catch (error) {
+                console.error('Error completo:', error);
+                updateLocationStatus(`Error al cargar datos: ${error.message}`, 'error');
+            } finally {
+                isLoading = false;
+                mostrarMapLoading(false);
+            }
         }
-
-        // Ejecutar animación cuando la sección sea visible
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateNumbers();
-                    observer.unobserve(entry.target);
+        
+        // Función para cargar predios en el mapa
+        function cargarPrediosEnMapa(data) {
+            // Limpiar capa anterior
+            prediosLayer.clearLayers();
+            
+            if (data.length === 0) {
+                updateLocationStatus('No se encontraron predios en esta área', 'error');
+                return;
+            }
+            
+            let addedCount = 0;
+            
+            // Crear marcadores o polígonos según el tipo de geometría
+            data.forEach(predio => {
+                if (predio.geom) {
+                    try {
+                        const geom = typeof predio.geom === 'string' ? JSON.parse(predio.geom) : predio.geom;
+                        
+                        if (geom.type === 'Point') {
+                            const marker = L.marker([geom.coordinates[1], geom.coordinates[0]]);
+                            marker.bindPopup(crearPopupContent(predio));
+                            prediosLayer.addLayer(marker);
+                            addedCount++;
+                        } else if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+                            const polygon = L.geoJSON(geom, {
+                                style: {
+                                    color: getColorByType(predio.TIPO_PRED),
+                                    weight: 2,
+                                    opacity: 0.8,
+                                    fillOpacity: 0.3
+                                }
+                            });
+                            polygon.bindPopup(crearPopupContent(predio));
+                            prediosLayer.addLayer(polygon);
+                            addedCount++;
+                        }
+                    } catch (error) {
+                        console.error('Error al procesar geometría:', error);
+                    }
                 }
             });
+            
+            console.log(`Agregados ${addedCount} predios al mapa`);
+            
+            // Solo ajustar vista si es la primera carga o si hay filtros específicos
+            if (addedCount > 0 && (prediosLayer.getLayers().length <= 50 || Object.keys(getFiltrosActivos()).length > 0)) {
+                try {
+                    const group = new L.featureGroup(prediosLayer.getLayers());
+                    map.fitBounds(group.getBounds(), { padding: [10, 10] });
+                } catch (error) {
+                    console.error('Error al ajustar vista:', error);
+                }
+            }
+        }
+        
+        // Obtener color según tipo de predio
+        function getColorByType(tipo) {
+            const colors = {
+                'URBANO': '#FF6B6B',
+                'RURAL': '#4ECDC4',
+                'INDUSTRIAL': '#45B7D1',
+                'COMERCIAL': '#FFA07A',
+                'RESIDENCIAL': '#98D8C8'
+            };
+            return colors[tipo] || '#667eea';
+        }
+        
+        // Crear contenido del popup
+        function crearPopupContent(predio) {
+            return `
+                <div class="popup-title">Predio: ${predio.ID_PRED || 'N/A'}</div>
+                <div class="popup-field"><strong>Tipo:</strong> ${predio.TIPO_PRED || 'N/A'}</div>
+                <div class="popup-field"><strong>Uso:</strong> ${predio.USO_PRED || 'N/A'}</div>
+                <div class="popup-field"><strong>Área:</strong> ${predio.Shape_Area ? predio.Shape_Area.toFixed(2) + ' m²' : 'N/A'}</div>
+                <div class="popup-field"><strong>Provincia:</strong> ${predio.DESPROV || 'N/A'}</div>
+                <div class="popup-field"><strong>Cantón:</strong> ${predio.DESCAN || 'N/A'}</div>
+                <div class="popup-field"><strong>Avalúo Total:</strong> ${predio.AVALUO_TOT ? '$' + predio.AVALUO_TOT.toFixed(2) : 'N/A'}</div>
+            `;
+        }
+        
+        // Obtener filtros activos
+        function getFiltrosActivos() {
+            const filtros = {
+                id_pred: document.getElementById('searchId').value
+            };
+            
+            // Remover filtros vacíos
+            Object.keys(filtros).forEach(key => {
+                if (!filtros[key]) delete filtros[key];
+            });
+            
+            return filtros;
+        }
+        
+        // Aplicar filtros
+        function aplicarFiltros() {
+            const filtros = getFiltrosActivos();
+            cargarDatos(filtros, 500); // Más predios cuando se aplican filtros
+        }
+        
+        // Limpiar filtros
+        function limpiarFiltros() {
+            document.getElementById('searchId').value = '';
+            cargarDatosPorZoom(true);
+        }
+        
+        // Exportar datos
+        function exportarDatos() {
+            if (currentData.length === 0) {
+                alert('No hay datos para exportar.');
+                return;
+            }
+            
+            // Crear CSV
+            const headers = ['ID_PRED', 'TIPO_PRED', 'USO_PRED', 'Shape_Area', 'DESPROV', 'DESCAN', 'AVALUO_TOT'];
+            const csvContent = [
+                headers.join(','),
+                ...currentData.map(row => headers.map(header => row[header] || '').join(','))
+            ].join('\n');
+            
+            // Descargar archivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `predios_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+        
+        // Actualizar estado de ubicación
+        function updateLocationStatus(message, type) {
+            const statusEl = document.getElementById('locationStatus');
+            statusEl.textContent = message;
+            statusEl.className = `location-status ${type}`;
+        }
+        
+        // Mostrar/ocultar loading del mapa
+        function mostrarMapLoading(show) {
+            document.getElementById('mapLoading').style.display = show ? 'block' : 'none';
+        }
+        
+        // Mostrar/ocultar loading del sidebar
+        function mostrarLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        // Función para probar la conexión
+        async function testConnection() {
+            try {
+                updateLocationStatus('Probando conexión con base de datos...', 'loading');
+                
+                // Probar consulta simple sin filtros
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/Predios_4326?select=id&limit=1`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Conexión exitosa:', data);
+                    updateLocationStatus('Conexión exitosa - Cargando datos iniciales...', 'success');
+                    
+                    // Cargar datos iniciales
+                    setTimeout(() => {
+                        cargarDatosPorZoom(true);
+                    }, 1000);
+                } else {
+                    const errorText = await response.text();
+                    console.error('Error de conexión:', errorText);
+                    updateLocationStatus(`Error de conexión: ${response.status}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error en test:', error);
+                updateLocationStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Inicializar aplicación
+        window.onload = function() {
+            console.log('Inicializando aplicación...');
+            console.log('Coordenadas El Pangui:', EL_PANGUI_COORDS);
+            
+            // Inicializar mapa
+            initMap();
+            
+            // Probar conexión después de un pequeño delay
+            setTimeout(() => {
+                testConnection();
+            }, 500);
+        };
+        
+        // Función adicional para centrar en El Pangui
+        function centrarEnElPangui() {
+            map.setView(EL_PANGUI_COORDS, 13);
+            updateLocationStatus('Centrado en El Pangui', 'success');
+        }
+        
+        // Función para mostrar información del área actual
+        function mostrarInfoArea() {
+            const bounds = map.getBounds();
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+            
+            console.log('Información del área actual:');
+            console.log('Centro:', center);
+            console.log('Zoom:', zoom);
+            console.log('Bounds:', bounds);
+            console.log('Límite de predios para este zoom:', getLimitForZoom(zoom));
+        }
+        
+        // Agregar evento de teclado para funciones de debug
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                mostrarInfoArea();
+            }
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                centrarEnElPangui();
+            }
         });
-
-        observer.observe(document.querySelector('.stats-section'));
     </script>
 </body>
 </html>
