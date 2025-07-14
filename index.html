@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geovisor Vías y Alcantarillado</title>
+    <title>Geovisor Vías, Alcantarillado y Agua Potable</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
@@ -25,7 +25,7 @@
         }
         
         .sidebar {
-            width: 320px;
+            width: 340px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             padding: 20px;
@@ -80,6 +80,10 @@
             background: linear-gradient(45deg, #3498db, #2c3e50);
         }
         
+        .stat-card.agua {
+            background: linear-gradient(45deg, #1abc9c, #16a085);
+        }
+        
         .controls {
             margin-bottom: 20px;
         }
@@ -121,6 +125,10 @@
         
         .btn.alcantarillado {
             background: linear-gradient(45deg, #3498db, #2c3e50);
+        }
+        
+        .btn.agua {
+            background: linear-gradient(45deg, #1abc9c, #16a085);
         }
         
         .btn.secondary {
@@ -182,7 +190,53 @@
         .layer-toggle {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
         }
         
         .zoom-info {
@@ -195,6 +249,16 @@
             font-size: 12px;
             z-index: 1000;
         }
+        
+        .section-title {
+            background: #34495e;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 15px 0 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -202,7 +266,7 @@
         <div class="sidebar">
             <div class="header">
                 <h1>🌍 Geovisor Multicapa</h1>
-                <p>Vías y Alcantarillado Sanitario</p>
+                <p>Vías, Alcantarillado y Agua Potable</p>
             </div>
             
             <div id="status" class="status">📍 Inicializando mapa...</div>
@@ -210,16 +274,23 @@
             <div class="layer-controls">
                 <h3>Capas</h3>
                 <div class="layer-toggle">
-                    <label for="toggleVias">Vías</label>
+                    <label for="toggleVias">🛣️ Vías</label>
                     <label class="switch">
                         <input type="checkbox" id="toggleVias" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
                 <div class="layer-toggle">
-                    <label for="toggleAlcantarillado">Alcantarillado</label>
+                    <label for="toggleAlcantarillado">🚰 Alcantarillado</label>
                     <label class="switch">
                         <input type="checkbox" id="toggleAlcantarillado" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="layer-toggle">
+                    <label for="toggleAgua">💧 Agua Potable</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleAgua" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -232,7 +303,11 @@
                 </div>
                 <div class="stat-card alcantarillado">
                     <h3 id="totalTubos">0</h3>
-                    <p>Total Tubos</p>
+                    <p>Total Tubos Alcant.</p>
+                </div>
+                <div class="stat-card agua">
+                    <h3 id="totalTubosAgua">0</h3>
+                    <p>Total Tubos Agua</p>
                 </div>
                 <div class="stat-card vias">
                     <h3 id="longitudVias">0</h3>
@@ -242,35 +317,65 @@
                     <h3 id="longitudAlcantarillado">0</h3>
                     <p>Long. Alcant. (m)</p>
                 </div>
+                <div class="stat-card agua">
+                    <h3 id="longitudAgua">0</h3>
+                    <p>Long. Agua (m)</p>
+                </div>
             </div>
             
             <div class="controls">
+                <div class="section-title">🛣️ VÍAS</div>
                 <div class="control-group">
-                    <label for="searchNombre">Buscar Vía por Nombre:</label>
+                    <label for="searchNombre">Buscar por Nombre:</label>
                     <input type="text" id="searchNombre" placeholder="Ej: Avenida Principal">
                 </div>
                 
                 <div class="control-group">
-                    <label for="filterTipo">Filtrar Vías por Tipo:</label>
+                    <label for="filterTipo">Filtrar por Tipo:</label>
                     <select id="filterTipo">
                         <option value="">Todos los tipos</option>
                     </select>
                 </div>
                 
+                <button class="btn vias" onclick="aplicarFiltrosVias()">🔍 Buscar Vías</button>
+                
+                <div class="section-title">🚰 ALCANTARILLADO</div>
                 <div class="control-group">
-                    <label for="searchEntity">Buscar Tubo por Entity:</label>
+                    <label for="searchEntity">Buscar por Entity:</label>
                     <input type="text" id="searchEntity" placeholder="Ej: TUBO_200">
                 </div>
                 
                 <div class="control-group">
-                    <label for="filterLayer">Filtrar Tubos por Layer:</label>
+                    <label for="filterLayer">Filtrar por Layer:</label>
                     <select id="filterLayer">
                         <option value="">Todos los layers</option>
                     </select>
                 </div>
                 
-                <button class="btn vias" onclick="aplicarFiltrosVias()">🔍 Buscar Vías</button>
                 <button class="btn alcantarillado" onclick="aplicarFiltrosAlcantarillado()">🔍 Buscar Alcantarillado</button>
+                
+                <div class="section-title">💧 AGUA POTABLE</div>
+                <div class="control-group">
+                    <label for="searchAgua">Buscar por AGUA:</label>
+                    <input type="text" id="searchAgua" placeholder="Ej: TUBO_PVC">
+                </div>
+                
+                <div class="control-group">
+                    <label for="filterLayerAgua">Filtrar por Layer:</label>
+                    <select id="filterLayerAgua">
+                        <option value="">Todos los layers</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="filterBarrio">Filtrar por Barrio:</label>
+                    <select id="filterBarrio">
+                        <option value="">Todos los barrios</option>
+                    </select>
+                </div>
+                
+                <button class="btn agua" onclick="aplicarFiltrosAgua()">🔍 Buscar Agua Potable</button>
+                
                 <button class="btn secondary" onclick="limpiarFiltros()">🗑️ Limpiar Filtros</button>
                 <button class="btn secondary" onclick="centrarEnElPangui()">📍 Centrar Mapa</button>
             </div>
@@ -283,6 +388,11 @@
             <div id="loadingAlcantarillado" class="loading" style="display: none;">
                 <div class="spinner"></div>
                 <p>Cargando alcantarillado...</p>
+            </div>
+            
+            <div id="loadingAgua" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Cargando agua potable...</p>
             </div>
             
             <div id="infoPanel" class="info-panel">
@@ -299,7 +409,8 @@
             <div class="zoom-info">
                 Zoom: <span id="currentZoom">12</span> | 
                 Vías: <span id="currentVias">0</span> | 
-                Tubos: <span id="currentTubos">0</span>
+                Alcant: <span id="currentTubos">0</span> |
+                Agua: <span id="currentTubosAgua">0</span>
             </div>
             <div id="map"></div>
         </div>
@@ -307,16 +418,17 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Configuración de Supabase (igual que en tus geovisores originales)
+        // Configuración de Supabase
         const SUPABASE_URL = 'https://dpxlpyyelqbwudkhdtbw.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweGxweXllbHFid3Vka2hkdGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxMjMwNjksImV4cCI6MjA2NTY5OTA2OX0.j8evYP_owzPeJmZ5GgdHnjpg1dYE4DShcI9fYYA8xG8';
         const EL_PANGUI_COORDS = [-3.6167, -78.55];
         
-        // Variables globales (inicializadas inmediatamente)
+        // Variables globales
         let map;
         const viasLayer = L.layerGroup();
         const alcantarilladoLayer = L.layerGroup();
-        let currentViasData = [], currentAlcantarilladoData = [];
+        const aguaLayer = L.layerGroup();
+        let currentViasData = [], currentAlcantarilladoData = [], currentAguaData = [];
         
         // Función para inicializar el mapa
         function initMap() {
@@ -330,6 +442,7 @@
             // Añadir capas de datos al mapa
             viasLayer.addTo(map);
             alcantarilladoLayer.addTo(map);
+            aguaLayer.addTo(map);
             
             // Configurar toggles de capas
             document.getElementById('toggleVias').addEventListener('change', function(e) {
@@ -338,6 +451,10 @@
             
             document.getElementById('toggleAlcantarillado').addEventListener('change', function(e) {
                 e.target.checked ? alcantarilladoLayer.addTo(map) : map.removeLayer(alcantarilladoLayer);
+            });
+            
+            document.getElementById('toggleAgua').addEventListener('change', function(e) {
+                e.target.checked ? aguaLayer.addTo(map) : map.removeLayer(aguaLayer);
             });
             
             // Eventos del mapa
@@ -403,7 +520,8 @@
                         const layer = L.geoJSON(geom, {
                             style: {
                                 color: getColorByType(item.Tipo),
-                                weight: 4
+                                weight: 4,
+                                opacity: 0.8
                             }
                         }).bindPopup(crearPopupVias(item));
                         
@@ -473,7 +591,8 @@
                         const layer = L.geoJSON(geom, {
                             style: {
                                 color: getColorByLayer(item.Layer),
-                                weight: 3
+                                weight: 3,
+                                opacity: 0.8
                             }
                         }).bindPopup(crearPopupAlcantarillado(item));
                         
@@ -488,7 +607,80 @@
             document.getElementById('currentTubos').textContent = contador;
         }
         
-        // Funciones auxiliares (de tus geovisores originales)
+        // Función para cargar agua potable desde Supabase
+        async function cargarAgua(filtros = {}) {
+            const loadingElement = document.getElementById('loadingAgua');
+            loadingElement.style.display = 'block';
+            
+            try {
+                let query = `${SUPABASE_URL}/rest/v1/red_agua_potable?select=*`;
+                
+                const conditions = [];
+                if (filtros.agua) conditions.push(`AGUA.ilike.%${filtros.agua}%`);
+                if (filtros.layer) conditions.push(`Layer.eq.${filtros.layer}`);
+                if (filtros.barrio) conditions.push(`PAR_BARRIO.ilike.%${filtros.barrio}%`);
+                
+                if (conditions.length > 0) query += `&${conditions.join('&')}`;
+                
+                query += '&limit=500';
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+                
+                const data = await response.json();
+                currentAguaData = data;
+                renderizarAgua(data);
+                actualizarEstadisticasAgua(data);
+                cargarLayersAguaDisponibles(data);
+                cargarBarriosDisponibles(data);
+                
+                updateStatus(`Agua potable cargada: ${data.length}`, 'success');
+            } catch (error) {
+                console.error('Error cargando agua potable:', error);
+                updateStatus(`Error agua potable: ${error.message}`, 'error');
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+        
+        // Función para renderizar agua potable en el mapa
+        function renderizarAgua(data) {
+            aguaLayer.clearLayers();
+            let contador = 0;
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    if (geom.type === 'LineString' || geom.type === 'MultiLineString') {
+                        const layer = L.geoJSON(geom, {
+                            style: {
+                                color: getColorByLayerAgua(item.Layer),
+                                weight: 3,
+                                opacity: 0.8
+                            }
+                        }).bindPopup(crearPopupAgua(item));
+                        
+                        aguaLayer.addLayer(layer);
+                        contador++;
+                    }
+                } catch (e) {
+                    console.error('Error procesando geometría:', e);
+                }
+            });
+            
+            document.getElementById('currentTubosAgua').textContent = contador;
+        }
+        
+        // Funciones auxiliares
         function getColorByType(tipo) {
             const colors = {
                 'Principal': '#e74c3c',
@@ -511,21 +703,51 @@
             return colors[layer] || '#34495e';
         }
         
+        function getColorByLayerAgua(layer) {
+            const colors = {
+                'TUBO_63': '#1abc9c',
+                'TUBO_50': '#16a085',
+                'TUBO_40': '#27ae60',
+                'TUBO_32': '#2ecc71',
+                'TUBO_25': '#3498db',
+                'CONEXION_AGUA': '#e67e22',
+                'MATRIZ': '#8e44ad'
+            };
+            return colors[layer] || '#1abc9c';
+        }
+        
         function crearPopupVias(item) {
             return `
-                <div class="popup-title">ID: ${item.id}</div>
-                <div class="popup-field"><strong>Nombre:</strong> ${item.NOMBRE || 'N/A'}</div>
-                <div class="popup-field"><strong>Tipo:</strong> ${item.Tipo || 'N/A'}</div>
-                <div class="popup-field"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
+                <div style="font-size: 14px; line-height: 1.4;">
+                    <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px;">🛣️ VÍA - ID: ${item.id}</div>
+                    <div style="margin-bottom: 4px;"><strong>Nombre:</strong> ${item.NOMBRE || 'N/A'}</div>
+                    <div style="margin-bottom: 4px;"><strong>Tipo:</strong> ${item.Tipo || 'N/A'}</div>
+                    <div style="margin-bottom: 4px;"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
+                </div>
             `;
         }
         
         function crearPopupAlcantarillado(item) {
             return `
-                <div class="popup-title">ID: ${item.OBJECTID}</div>
-                <div class="popup-field"><strong>Entity:</strong> ${item.Entity || 'N/A'}</div>
-                <div class="popup-field"><strong>Layer:</strong> ${item.Layer || 'N/A'}</div>
-                <div class="popup-field"><strong>Longitud:</strong> ${item.Length ? item.Length.toFixed(2) + ' m' : 'N/A'}</div>
+                <div style="font-size: 14px; line-height: 1.4;">
+                    <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px;">🚰 ALCANTARILLADO - ID: ${item.OBJECTID}</div>
+                    <div style="margin-bottom: 4px;"><strong>Entity:</strong> ${item.Entity || 'N/A'}</div>
+                    <div style="margin-bottom: 4px;"><strong>Layer:</strong> ${item.Layer || 'N/A'}</div>
+                    <div style="margin-bottom: 4px;"><strong>Longitud:</strong> ${item.Length ? item.Length.toFixed(2) + ' m' : 'N/A'}</div>
+                </div>
+            `;
+        }
+        
+        function crearPopupAgua(item) {
+            return `
+                <div style="font-size: 14px; line-height: 1.4;">
+                    <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px;">💧 AGUA POTABLE - ID: ${item.OBJECTID}</div>
+                    <div style="margin-bottom: 4px;"><strong>Tipo:</strong> ${item.AGUA || 'N/A'}</div>
+                    <div style="margin-bottom: 4px;"><strong>Layer:</strong> ${item.Layer || 'N/A'}</div>
+                    <div style="margin-bottom: 4px;"><strong>Barrio:</strong> ${item.PAR_BARRIO || 'N/A'}</div>
+                    <div style="margin-bottom: 4px;"><strong>Área:</strong> ${item.AREA ? item.AREA.toFixed(2) + ' m²' : 'N/A'}</div>
+                    <div style="margin-bottom: 4px;"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
+                </div>
             `;
         }
         
@@ -541,6 +763,13 @@
             const longitud = data.reduce((sum, item) => sum + (item.Length || 0), 0);
             document.getElementById('totalTubos').textContent = total;
             document.getElementById('longitudAlcantarillado').textContent = longitud.toFixed(0);
+        }
+        
+        function actualizarEstadisticasAgua(data) {
+            const total = data.length;
+            const longitud = data.reduce((sum, item) => sum + (item.Shape_Leng || 0), 0);
+            document.getElementById('totalTubosAgua').textContent = total;
+            document.getElementById('longitudAgua').textContent = longitud.toFixed(0);
         }
         
         function cargarTiposDisponibles(data) {
@@ -569,6 +798,32 @@
             });
         }
         
+        function cargarLayersAguaDisponibles(data) {
+            const select = document.getElementById('filterLayerAgua');
+            const layers = [...new Set(data.map(item => item.Layer).filter(Boolean))];
+            
+            select.innerHTML = '<option value="">Todos los layers</option>';
+            layers.forEach(layer => {
+                const option = document.createElement('option');
+                option.value = layer;
+                option.textContent = layer;
+                select.appendChild(option);
+            });
+        }
+        
+        function cargarBarriosDisponibles(data) {
+            const select = document.getElementById('filterBarrio');
+            const barrios = [...new Set(data.map(item => item.PAR_BARRIO).filter(Boolean))];
+            
+            select.innerHTML = '<option value="">Todos los barrios</option>';
+            barrios.forEach(barrio => {
+                const option = document.createElement('option');
+                option.value = barrio;
+                option.textContent = barrio;
+                select.appendChild(option);
+            });
+        }
+        
         function aplicarFiltrosVias() {
             const filtros = {
                 nombre: document.getElementById('searchNombre').value.trim(),
@@ -585,15 +840,28 @@
             cargarAlcantarillado(filtros);
         }
         
+        function aplicarFiltrosAgua() {
+            const filtros = {
+                agua: document.getElementById('searchAgua').value.trim(),
+                layer: document.getElementById('filterLayerAgua').value,
+                barrio: document.getElementById('filterBarrio').value
+            };
+            cargarAgua(filtros);
+        }
+        
         function limpiarFiltros() {
             document.getElementById('searchNombre').value = '';
             document.getElementById('filterTipo').value = '';
             document.getElementById('searchEntity').value = '';
             document.getElementById('filterLayer').value = '';
+            document.getElementById('searchAgua').value = '';
+            document.getElementById('filterLayerAgua').value = '';
+            document.getElementById('filterBarrio').value = '';
             document.getElementById('infoPanel').style.display = 'none';
             
             cargarVias();
             cargarAlcantarillado();
+            cargarAgua();
         }
         
         function centrarEnElPangui() {
@@ -613,6 +881,7 @@
             setTimeout(() => {
                 cargarVias();
                 cargarAlcantarillado();
+                cargarAgua();
             }, 100);
         };
     </script>
