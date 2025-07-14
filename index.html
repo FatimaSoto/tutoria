@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geovisor de Predios</title>
+    <title>Geovisor Vías y Alcantarillado</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
@@ -14,7 +14,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
         }
         
         .container {
@@ -25,9 +25,8 @@
         }
         
         .sidebar {
-            width: 350px;
+            width: 320px;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -54,14 +53,9 @@
         }
         
         .header h1 {
-            color: #333;
-            font-size: 24px;
+            color: #2c3e50;
+            font-size: 22px;
             margin-bottom: 5px;
-        }
-        
-        .header p {
-            color: #666;
-            font-size: 14px;
         }
         
         .stats {
@@ -72,77 +66,71 @@
         }
         
         .stat-card {
-            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             padding: 15px;
             border-radius: 10px;
             text-align: center;
         }
         
-        .stat-card h3 {
-            font-size: 20px;
-            margin-bottom: 5px;
+        .stat-card.vias {
+            background: linear-gradient(45deg, #e67e22, #d35400);
         }
         
-        .stat-card p {
-            font-size: 12px;
-            opacity: 0.9;
+        .stat-card.alcantarillado {
+            background: linear-gradient(45deg, #3498db, #2c3e50);
         }
         
-        .filters {
+        .controls {
             margin-bottom: 20px;
         }
         
-        .filter-group {
+        .control-group {
             margin-bottom: 15px;
         }
         
-        .filter-group label {
+        .control-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: 600;
-            color: #333;
+            color: #2c3e50;
         }
         
-        .filter-group input {
+        .control-group input, .control-group select {
             width: 100%;
             padding: 8px 12px;
-            border: 2px solid #e1e5e9;
+            border: 2px solid #ecf0f1;
             border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        .filter-group input:focus {
-            outline: none;
-            border-color: #667eea;
         }
         
         .btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 10px 16px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             width: 100%;
-            margin-bottom: 10px;
-            transition: transform 0.2s;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
         
-        .btn:hover {
-            transform: translateY(-2px);
+        .btn.vias {
+            background: linear-gradient(45deg, #e67e22, #d35400);
         }
         
-        .btn:active {
-            transform: translateY(0);
+        .btn.alcantarillado {
+            background: linear-gradient(45deg, #3498db, #2c3e50);
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
         }
         
         .loading {
             text-align: center;
             padding: 20px;
-            color: #666;
+            color: #7f8c8d;
         }
         
         .spinner {
@@ -150,7 +138,7 @@
             width: 20px;
             height: 20px;
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #3498db;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -160,50 +148,41 @@
             100% { transform: rotate(360deg); }
         }
         
-        .property-info {
-            background: #f8f9fa;
+        .info-panel {
+            background: #ecf0f1;
             padding: 15px;
             border-radius: 10px;
             margin-top: 15px;
+            display: none;
         }
         
-        .property-info h3 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .property-info div {
-            margin-bottom: 5px;
+        .status {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
             font-size: 14px;
         }
         
-        .property-info strong {
-            color: #667eea;
+        .status.success {
+            color: #27ae60;
         }
         
-        .leaflet-popup-content-wrapper {
+        .status.error {
+            color: #e74c3c;
+        }
+        
+        .layer-controls {
+            background: #ecf0f1;
+            padding: 15px;
             border-radius: 10px;
+            margin-bottom: 15px;
         }
         
-        .leaflet-popup-content {
-            margin: 10px 15px;
-            line-height: 1.4;
-        }
-        
-        .popup-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-        
-        .popup-field {
-            margin-bottom: 4px;
-            font-size: 14px;
-        }
-        
-        .popup-field strong {
-            color: #667eea;
+        .layer-toggle {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
         
         .zoom-info {
@@ -215,40 +194,6 @@
             border-radius: 5px;
             font-size: 12px;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .map-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        
-        .location-status {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        
-        .location-status.loading {
-            color: #667eea;
-        }
-        
-        .location-status.success {
-            color: #28a745;
-        }
-        
-        .location-status.error {
-            color: #dc3545;
         }
     </style>
 </head>
@@ -256,55 +201,105 @@
     <div class="container">
         <div class="sidebar">
             <div class="header">
-                <h1>🏘️ Geovisor de Predios</h1>
-                <p>Visualización de predios catastrales</p>
+                <h1>🌍 Geovisor Multicapa</h1>
+                <p>Vías y Alcantarillado Sanitario</p>
             </div>
             
-            <div id="locationStatus" class="location-status">
-                📍 Inicializando mapa...
+            <div id="status" class="status">📍 Inicializando mapa...</div>
+            
+            <div class="layer-controls">
+                <h3>Capas</h3>
+                <div class="layer-toggle">
+                    <label for="toggleVias">Vías</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleVias" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="layer-toggle">
+                    <label for="toggleAlcantarillado">Alcantarillado</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleAlcantarillado" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
             
             <div class="stats">
-                <div class="stat-card">
-                    <h3 id="totalPredios">0</h3>
-                    <p>Total Predios</p>
+                <div class="stat-card vias">
+                    <h3 id="totalVias">0</h3>
+                    <p>Total Vías</p>
                 </div>
-                <div class="stat-card">
-                    <h3 id="prediosVisible">0</h3>
-                    <p>Visibles</p>
+                <div class="stat-card alcantarillado">
+                    <h3 id="totalTubos">0</h3>
+                    <p>Total Tubos</p>
+                </div>
+                <div class="stat-card vias">
+                    <h3 id="longitudVias">0</h3>
+                    <p>Long. Vías (m)</p>
+                </div>
+                <div class="stat-card alcantarillado">
+                    <h3 id="longitudAlcantarillado">0</h3>
+                    <p>Long. Alcant. (m)</p>
                 </div>
             </div>
             
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="searchId">Buscar por ID Predio:</label>
-                    <input type="text" id="searchId" placeholder="Ingrese ID del predio">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="searchNombre">Buscar Vía por Nombre:</label>
+                    <input type="text" id="searchNombre" placeholder="Ej: Avenida Principal">
                 </div>
                 
-                <button class="btn" onclick="aplicarFiltros()">🔍 Buscar</button>
-                <button class="btn" onclick="limpiarFiltros()">🗑️ Limpiar</button>
-                <button class="btn" onclick="exportarDatos()">📊 Exportar Datos</button>
+                <div class="control-group">
+                    <label for="filterTipo">Filtrar Vías por Tipo:</label>
+                    <select id="filterTipo">
+                        <option value="">Todos los tipos</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="searchEntity">Buscar Tubo por Entity:</label>
+                    <input type="text" id="searchEntity" placeholder="Ej: TUBO_200">
+                </div>
+                
+                <div class="control-group">
+                    <label for="filterLayer">Filtrar Tubos por Layer:</label>
+                    <select id="filterLayer">
+                        <option value="">Todos los layers</option>
+                    </select>
+                </div>
+                
+                <button class="btn vias" onclick="aplicarFiltrosVias()">🔍 Buscar Vías</button>
+                <button class="btn alcantarillado" onclick="aplicarFiltrosAlcantarillado()">🔍 Buscar Alcantarillado</button>
+                <button class="btn secondary" onclick="limpiarFiltros()">🗑️ Limpiar Filtros</button>
+                <button class="btn secondary" onclick="centrarEnElPangui()">📍 Centrar Mapa</button>
             </div>
             
-            <div id="loading" class="loading" style="display: none;">
+            <div id="loadingVias" class="loading" style="display: none;">
                 <div class="spinner"></div>
-                <p>Cargando datos...</p>
+                <p>Cargando vías...</p>
             </div>
             
-            <div id="propertyInfo" class="property-info" style="display: none;">
-                <h3>Información del Predio</h3>
-                <div id="propertyDetails"></div>
+            <div id="loadingAlcantarillado" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Cargando alcantarillado...</p>
+            </div>
+            
+            <div id="infoPanel" class="info-panel">
+                <h3 id="infoTitle">Información</h3>
+                <div id="infoDetails"></div>
             </div>
         </div>
         
         <div class="map-container">
-            <div id="mapLoading" class="map-loading" style="display: none;">
+            <div id="mapLoading" class="loading" style="display: none;">
                 <div class="spinner"></div>
-                <p>Cargando predios...</p>
+                <p>Cargando datos...</p>
             </div>
             <div class="zoom-info">
-                <div>Zoom: <span id="currentZoom">10</span></div>
-                <div>Predios: <span id="currentPredios">0</span></div>
+                Zoom: <span id="currentZoom">12</span> | 
+                Vías: <span id="currentVias">0</span> | 
+                Tubos: <span id="currentTubos">0</span>
             </div>
             <div id="map"></div>
         </div>
@@ -312,406 +307,314 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Configuración de la base de datos
+        // Configuración de Supabase (igual que en tus geovisores originales)
         const SUPABASE_URL = 'https://dpxlpyyelqbwudkhdtbw.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweGxweXllbHFid3Vka2hkdGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxMjMwNjksImV4cCI6MjA2NTY5OTA2OX0.j8evYP_owzPeJmZ5GgdHnjpg1dYE4DShcI9fYYA8xG8';
-        
-        // Coordenadas de El Pangui, Zamora Chinchipe
         const EL_PANGUI_COORDS = [-3.6167, -78.55];
         
-        // Variables globales
+        // Variables globales (inicializadas inmediatamente)
         let map;
-        let prediosLayer;
-        let currentData = [];
-        let allData = [];
-        let isLoading = false;
-        let currentZoom = 10;
-        let loadTimeout;
+        const viasLayer = L.layerGroup();
+        const alcantarilladoLayer = L.layerGroup();
+        let currentViasData = [], currentAlcantarilladoData = [];
         
-        // Configuración de límites por zoom
-        const ZOOM_LIMITS = {
-            8: 50,   // Zoom bajo: pocos predios
-            10: 100,  // Zoom medio: más predios
-            12: 250,  // Zoom alto: muchos predios
-            14: 500,  // Zoom muy alto: máximo predios
-            16: 1000  // Zoom máximo: todos los predios visibles
-        };
-        
-        // Inicializar mapa
+        // Función para inicializar el mapa
         function initMap() {
-            updateLocationStatus('Inicializando mapa centrado en El Pangui...', 'loading');
+            map = L.map('map').setView(EL_PANGUI_COORDS, 12);
             
-            // Crear mapa centrado en El Pangui
-            map = L.map('map').setView(EL_PANGUI_COORDS, 10);
-            
-            // Añadir capa base
+            // Capas base
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+                attribution: '© OpenStreetMap'
             }).addTo(map);
             
-            // Añadir capa de satélite como opción
-            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
+            // Añadir capas de datos al mapa
+            viasLayer.addTo(map);
+            alcantarilladoLayer.addTo(map);
+            
+            // Configurar toggles de capas
+            document.getElementById('toggleVias').addEventListener('change', function(e) {
+                e.target.checked ? viasLayer.addTo(map) : map.removeLayer(viasLayer);
             });
             
-            // Control de capas
-            const baseMaps = {
-                "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'),
-                "Satélite": satellite
-            };
-            
-            L.control.layers(baseMaps).addTo(map);
-            
-            // Crear grupo de capas para predios
-            prediosLayer = L.layerGroup().addTo(map);
+            document.getElementById('toggleAlcantarillado').addEventListener('change', function(e) {
+                e.target.checked ? alcantarilladoLayer.addTo(map) : map.removeLayer(alcantarilladoLayer);
+            });
             
             // Eventos del mapa
-            map.on('zoomend', onMapChange);
-            map.on('moveend', onMapChange);
+            map.on('zoomend', function() {
+                document.getElementById('currentZoom').textContent = map.getZoom();
+            });
             
-            // Actualizar zoom inicial
-            currentZoom = map.getZoom();
-            document.getElementById('currentZoom').textContent = currentZoom;
-            
-            updateLocationStatus('Mapa centrado en El Pangui - Listo para cargar datos', 'success');
+            updateStatus('Mapa listo', 'success');
         }
         
-        // Función que se ejecuta cuando cambia el mapa
-        function onMapChange() {
-            const newZoom = map.getZoom();
-            const zoomChanged = newZoom !== currentZoom;
-            currentZoom = newZoom;
-            document.getElementById('currentZoom').textContent = currentZoom;
-            
-            // Cancelar carga anterior si existe
-            if (loadTimeout) {
-                clearTimeout(loadTimeout);
-            }
-            
-            // Cargar datos con delay para evitar múltiples cargas
-            loadTimeout = setTimeout(() => {
-                cargarDatosPorZoom(zoomChanged);
-            }, 500);
-        }
-        
-        // Función para cargar datos según el zoom
-        async function cargarDatosPorZoom(zoomChanged = false) {
-            if (isLoading) return;
-            
-            const limit = getLimitForZoom(currentZoom);
-            const bounds = map.getBounds();
-            
-            // Solo recargar si cambió el zoom significativamente o si es la primera carga
-            if (zoomChanged || prediosLayer.getLayers().length === 0) {
-                await cargarDatos({}, limit, bounds);
-            }
-        }
-        
-        // Obtener límite de predios según zoom
-        function getLimitForZoom(zoom) {
-            if (zoom <= 8) return ZOOM_LIMITS[8];
-            if (zoom <= 10) return ZOOM_LIMITS[10];
-            if (zoom <= 12) return ZOOM_LIMITS[12];
-            if (zoom <= 14) return ZOOM_LIMITS[14];
-            return ZOOM_LIMITS[16];
-        }
-        
-        // Función para cargar datos de Supabase
-        async function cargarDatos(filtros = {}, limit = null, bounds = null) {
-            if (isLoading) return;
-            
-            isLoading = true;
-            mostrarMapLoading(true);
+        // Función para cargar vías desde Supabase
+        async function cargarVias(filtros = {}) {
+            const loadingElement = document.getElementById('loadingVias');
+            loadingElement.style.display = 'block';
             
             try {
-                // Usar el nombre correcto de la tabla
-                let query = `${SUPABASE_URL}/rest/v1/Predios_4326?select=*`;
+                let query = `${SUPABASE_URL}/rest/v1/vias?select=*`;
                 
-                // Aplicar filtros (solo búsqueda por ID ahora)
                 const conditions = [];
-                if (filtros.id_pred) conditions.push(`ID_PRED.ilike.%${filtros.id_pred}%`);
+                if (filtros.nombre) conditions.push(`NOMBRE.ilike.%${filtros.nombre}%`);
+                if (filtros.tipo) conditions.push(`Tipo.eq.${filtros.tipo}`);
                 
-                // Filtro por área visible (bounds) si está disponible
-                if (bounds && !filtros.id_pred) {
-                    // Nota: Este filtro espacial podría necesitar ajustes según la estructura de datos
-                    // conditions.push(`geom.intersects.${bounds}`);
-                }
+                if (conditions.length > 0) query += `&${conditions.join('&')}`;
                 
-                if (conditions.length > 0) {
-                    query += `&${conditions.join('&')}`;
-                }
-                
-                // Aplicar límite basado en zoom
-                const finalLimit = limit || getLimitForZoom(currentZoom);
-                query += `&limit=${finalLimit}`;
-                
-                // Ordenar por área para mostrar primero los predios más grandes
-                query += '&order=Shape_Area.desc';
-                
-                console.log('Query URL:', query);
-                console.log('Límite para zoom', currentZoom, ':', finalLimit);
+                query += '&limit=1000';
                 
                 const response = await fetch(query, {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json'
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
                     }
                 });
                 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Error ${response.status}: ${response.statusText}\n${errorText}`);
-                }
+                if (!response.ok) throw new Error(`Error ${response.status}`);
                 
                 const data = await response.json();
-                console.log('Datos recibidos:', data.length, 'registros');
+                currentViasData = data;
+                renderizarVias(data);
+                actualizarEstadisticasVias(data);
+                cargarTiposDisponibles(data);
                 
-                currentData = data;
-                
-                // Actualizar estadísticas
-                document.getElementById('totalPredios').textContent = data.length;
-                document.getElementById('prediosVisible').textContent = data.length;
-                document.getElementById('currentPredios').textContent = data.length;
-                
-                // Cargar datos en el mapa
-                cargarPrediosEnMapa(data);
-                
-                updateLocationStatus(`Cargados ${data.length} predios (zoom ${currentZoom})`, 'success');
-                
+                updateStatus(`Vías cargadas: ${data.length}`, 'success');
             } catch (error) {
-                console.error('Error completo:', error);
-                updateLocationStatus(`Error al cargar datos: ${error.message}`, 'error');
+                console.error('Error cargando vías:', error);
+                updateStatus(`Error vías: ${error.message}`, 'error');
             } finally {
-                isLoading = false;
-                mostrarMapLoading(false);
+                loadingElement.style.display = 'none';
             }
         }
         
-        // Función para cargar predios en el mapa
-        function cargarPrediosEnMapa(data) {
-            // Limpiar capa anterior
-            prediosLayer.clearLayers();
+        // Función para renderizar vías en el mapa
+        function renderizarVias(data) {
+            viasLayer.clearLayers();
+            let contador = 0;
             
-            if (data.length === 0) {
-                updateLocationStatus('No se encontraron predios en esta área', 'error');
-                return;
-            }
-            
-            let addedCount = 0;
-            
-            // Crear marcadores o polígonos según el tipo de geometría
-            data.forEach(predio => {
-                if (predio.geom) {
-                    try {
-                        const geom = typeof predio.geom === 'string' ? JSON.parse(predio.geom) : predio.geom;
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    if (geom.type === 'LineString' || geom.type === 'MultiLineString') {
+                        const layer = L.geoJSON(geom, {
+                            style: {
+                                color: getColorByType(item.Tipo),
+                                weight: 4
+                            }
+                        }).bindPopup(crearPopupVias(item));
                         
-                        if (geom.type === 'Point') {
-                            const marker = L.marker([geom.coordinates[1], geom.coordinates[0]]);
-                            marker.bindPopup(crearPopupContent(predio));
-                            prediosLayer.addLayer(marker);
-                            addedCount++;
-                        } else if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
-                            const polygon = L.geoJSON(geom, {
-                                style: {
-                                    color: getColorByType(predio.TIPO_PRED),
-                                    weight: 2,
-                                    opacity: 0.8,
-                                    fillOpacity: 0.3
-                                }
-                            });
-                            polygon.bindPopup(crearPopupContent(predio));
-                            prediosLayer.addLayer(polygon);
-                            addedCount++;
-                        }
-                    } catch (error) {
-                        console.error('Error al procesar geometría:', error);
+                        viasLayer.addLayer(layer);
+                        contador++;
                     }
+                } catch (e) {
+                    console.error('Error procesando geometría:', e);
                 }
             });
             
-            console.log(`Agregados ${addedCount} predios al mapa`);
+            document.getElementById('currentVias').textContent = contador;
+        }
+        
+        // Función para cargar alcantarillado desde Supabase
+        async function cargarAlcantarillado(filtros = {}) {
+            const loadingElement = document.getElementById('loadingAlcantarillado');
+            loadingElement.style.display = 'block';
             
-            // Solo ajustar vista si es la primera carga o si hay filtros específicos
-            if (addedCount > 0 && (prediosLayer.getLayers().length <= 50 || Object.keys(getFiltrosActivos()).length > 0)) {
-                try {
-                    const group = new L.featureGroup(prediosLayer.getLayers());
-                    map.fitBounds(group.getBounds(), { padding: [10, 10] });
-                } catch (error) {
-                    console.error('Error al ajustar vista:', error);
-                }
+            try {
+                let query = `${SUPABASE_URL}/rest/v1/red_alcantarillado_sanitario?select=*`;
+                
+                const conditions = [];
+                if (filtros.entity) conditions.push(`Entity.ilike.%${filtros.entity}%`);
+                if (filtros.layer) conditions.push(`Layer.eq.${filtros.layer}`);
+                
+                if (conditions.length > 0) query += `&${conditions.join('&')}`;
+                
+                query += '&limit=500';
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+                
+                const data = await response.json();
+                currentAlcantarilladoData = data;
+                renderizarAlcantarillado(data);
+                actualizarEstadisticasAlcantarillado(data);
+                cargarLayersDisponibles(data);
+                
+                updateStatus(`Alcantarillado cargado: ${data.length}`, 'success');
+            } catch (error) {
+                console.error('Error cargando alcantarillado:', error);
+                updateStatus(`Error alcantarillado: ${error.message}`, 'error');
+            } finally {
+                loadingElement.style.display = 'none';
             }
         }
         
-        // Obtener color según tipo de predio
-        function getColorByType(tipo) {
-            const colors = {
-                'URBANO': '#FF6B6B',
-                'RURAL': '#4ECDC4',
-                'INDUSTRIAL': '#45B7D1',
-                'COMERCIAL': '#FFA07A',
-                'RESIDENCIAL': '#98D8C8'
-            };
-            return colors[tipo] || '#667eea';
+        // Función para renderizar alcantarillado en el mapa
+        function renderizarAlcantarillado(data) {
+            alcantarilladoLayer.clearLayers();
+            let contador = 0;
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    if (geom.type === 'LineString' || geom.type === 'MultiLineString') {
+                        const layer = L.geoJSON(geom, {
+                            style: {
+                                color: getColorByLayer(item.Layer),
+                                weight: 3
+                            }
+                        }).bindPopup(crearPopupAlcantarillado(item));
+                        
+                        alcantarilladoLayer.addLayer(layer);
+                        contador++;
+                    }
+                } catch (e) {
+                    console.error('Error procesando geometría:', e);
+                }
+            });
+            
+            document.getElementById('currentTubos').textContent = contador;
         }
         
-        // Crear contenido del popup
-        function crearPopupContent(predio) {
+        // Funciones auxiliares (de tus geovisores originales)
+        function getColorByType(tipo) {
+            const colors = {
+                'Principal': '#e74c3c',
+                'Secundaria': '#f39c12',
+                'Terciaria': '#2ecc71',
+                'Peatonal': '#9b59b6',
+                'Carretera': '#3498db'
+            };
+            return colors[tipo] || '#e67e22';
+        }
+        
+        function getColorByLayer(layer) {
+            const colors = {
+                'TUBO_200': '#e74c3c',
+                'TUBO_150': '#3498db',
+                'TUBO_100': '#2ecc71',
+                'COLECTOR': '#9b59b6',
+                'CONEXION': '#f39c12'
+            };
+            return colors[layer] || '#34495e';
+        }
+        
+        function crearPopupVias(item) {
             return `
-                <div class="popup-title">Predio: ${predio.ID_PRED || 'N/A'}</div>
-                <div class="popup-field"><strong>Tipo:</strong> ${predio.TIPO_PRED || 'N/A'}</div>
-                <div class="popup-field"><strong>Uso:</strong> ${predio.USO_PRED || 'N/A'}</div>
-                <div class="popup-field"><strong>Área:</strong> ${predio.Shape_Area ? predio.Shape_Area.toFixed(2) + ' m²' : 'N/A'}</div>
-                <div class="popup-field"><strong>Provincia:</strong> ${predio.DESPROV || 'N/A'}</div>
-                <div class="popup-field"><strong>Cantón:</strong> ${predio.DESCAN || 'N/A'}</div>
-                <div class="popup-field"><strong>Avalúo Total:</strong> ${predio.AVALUO_TOT ? '$' + predio.AVALUO_TOT.toFixed(2) : 'N/A'}</div>
+                <div class="popup-title">ID: ${item.id}</div>
+                <div class="popup-field"><strong>Nombre:</strong> ${item.NOMBRE || 'N/A'}</div>
+                <div class="popup-field"><strong>Tipo:</strong> ${item.Tipo || 'N/A'}</div>
+                <div class="popup-field"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
             `;
         }
         
-        // Obtener filtros activos
-        function getFiltrosActivos() {
-            const filtros = {
-                id_pred: document.getElementById('searchId').value
-            };
+        function crearPopupAlcantarillado(item) {
+            return `
+                <div class="popup-title">ID: ${item.OBJECTID}</div>
+                <div class="popup-field"><strong>Entity:</strong> ${item.Entity || 'N/A'}</div>
+                <div class="popup-field"><strong>Layer:</strong> ${item.Layer || 'N/A'}</div>
+                <div class="popup-field"><strong>Longitud:</strong> ${item.Length ? item.Length.toFixed(2) + ' m' : 'N/A'}</div>
+            `;
+        }
+        
+        function actualizarEstadisticasVias(data) {
+            const total = data.length;
+            const longitud = data.reduce((sum, item) => sum + (item.Shape_Leng || 0), 0);
+            document.getElementById('totalVias').textContent = total;
+            document.getElementById('longitudVias').textContent = longitud.toFixed(0);
+        }
+        
+        function actualizarEstadisticasAlcantarillado(data) {
+            const total = data.length;
+            const longitud = data.reduce((sum, item) => sum + (item.Length || 0), 0);
+            document.getElementById('totalTubos').textContent = total;
+            document.getElementById('longitudAlcantarillado').textContent = longitud.toFixed(0);
+        }
+        
+        function cargarTiposDisponibles(data) {
+            const select = document.getElementById('filterTipo');
+            const tipos = [...new Set(data.map(item => item.Tipo).filter(Boolean))];
             
-            // Remover filtros vacíos
-            Object.keys(filtros).forEach(key => {
-                if (!filtros[key]) delete filtros[key];
+            select.innerHTML = '<option value="">Todos los tipos</option>';
+            tipos.forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo;
+                option.textContent = tipo;
+                select.appendChild(option);
             });
+        }
+        
+        function cargarLayersDisponibles(data) {
+            const select = document.getElementById('filterLayer');
+            const layers = [...new Set(data.map(item => item.Layer).filter(Boolean))];
             
-            return filtros;
+            select.innerHTML = '<option value="">Todos los layers</option>';
+            layers.forEach(layer => {
+                const option = document.createElement('option');
+                option.value = layer;
+                option.textContent = layer;
+                select.appendChild(option);
+            });
         }
         
-        // Aplicar filtros
-        function aplicarFiltros() {
-            const filtros = getFiltrosActivos();
-            cargarDatos(filtros, 500); // Más predios cuando se aplican filtros
+        function aplicarFiltrosVias() {
+            const filtros = {
+                nombre: document.getElementById('searchNombre').value.trim(),
+                tipo: document.getElementById('filterTipo').value
+            };
+            cargarVias(filtros);
         }
         
-        // Limpiar filtros
+        function aplicarFiltrosAlcantarillado() {
+            const filtros = {
+                entity: document.getElementById('searchEntity').value.trim(),
+                layer: document.getElementById('filterLayer').value
+            };
+            cargarAlcantarillado(filtros);
+        }
+        
         function limpiarFiltros() {
-            document.getElementById('searchId').value = '';
-            cargarDatosPorZoom(true);
-        }
-        
-        // Exportar datos
-        function exportarDatos() {
-            if (currentData.length === 0) {
-                alert('No hay datos para exportar.');
-                return;
-            }
+            document.getElementById('searchNombre').value = '';
+            document.getElementById('filterTipo').value = '';
+            document.getElementById('searchEntity').value = '';
+            document.getElementById('filterLayer').value = '';
+            document.getElementById('infoPanel').style.display = 'none';
             
-            // Crear CSV
-            const headers = ['ID_PRED', 'TIPO_PRED', 'USO_PRED', 'Shape_Area', 'DESPROV', 'DESCAN', 'AVALUO_TOT'];
-            const csvContent = [
-                headers.join(','),
-                ...currentData.map(row => headers.map(header => row[header] || '').join(','))
-            ].join('\n');
-            
-            // Descargar archivo
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `predios_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+            cargarVias();
+            cargarAlcantarillado();
         }
         
-        // Actualizar estado de ubicación
-        function updateLocationStatus(message, type) {
-            const statusEl = document.getElementById('locationStatus');
-            statusEl.textContent = message;
-            statusEl.className = `location-status ${type}`;
-        }
-        
-        // Mostrar/ocultar loading del mapa
-        function mostrarMapLoading(show) {
-            document.getElementById('mapLoading').style.display = show ? 'block' : 'none';
-        }
-        
-        // Mostrar/ocultar loading del sidebar
-        function mostrarLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-        }
-        
-        // Función para probar la conexión
-        async function testConnection() {
-            try {
-                updateLocationStatus('Probando conexión con base de datos...', 'loading');
-                
-                // Probar consulta simple sin filtros
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/Predios_4326?select=id&limit=1`, {
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Conexión exitosa:', data);
-                    updateLocationStatus('Conexión exitosa - Cargando datos iniciales...', 'success');
-                    
-                    // Cargar datos iniciales
-                    setTimeout(() => {
-                        cargarDatosPorZoom(true);
-                    }, 1000);
-                } else {
-                    const errorText = await response.text();
-                    console.error('Error de conexión:', errorText);
-                    updateLocationStatus(`Error de conexión: ${response.status}`, 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error en test:', error);
-                updateLocationStatus(`Error: ${error.message}`, 'error');
-            }
-        }
-        
-        // Inicializar aplicación
-        window.onload = function() {
-            console.log('Inicializando aplicación...');
-            console.log('Coordenadas El Pangui:', EL_PANGUI_COORDS);
-            
-            // Inicializar mapa
-            initMap();
-            
-            // Probar conexión después de un pequeño delay
-            setTimeout(() => {
-                testConnection();
-            }, 500);
-        };
-        
-        // Función adicional para centrar en El Pangui
         function centrarEnElPangui() {
-            map.setView(EL_PANGUI_COORDS, 13);
-            updateLocationStatus('Centrado en El Pangui', 'success');
+            map.setView(EL_PANGUI_COORDS, 12);
+            updateStatus('Centrado en El Pangui', 'success');
         }
         
-        // Función para mostrar información del área actual
-        function mostrarInfoArea() {
-            const bounds = map.getBounds();
-            const center = map.getCenter();
-            const zoom = map.getZoom();
-            
-            console.log('Información del área actual:');
-            console.log('Centro:', center);
-            console.log('Zoom:', zoom);
-            console.log('Bounds:', bounds);
-            console.log('Límite de predios para este zoom:', getLimitForZoom(zoom));
+        function updateStatus(message, type = '') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = type ? `status ${type}` : 'status';
         }
         
-        // Agregar evento de teclado para funciones de debug
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'i') {
-                e.preventDefault();
-                mostrarInfoArea();
-            }
-            if (e.ctrlKey && e.key === 'p') {
-                e.preventDefault();
-                centrarEnElPangui();
-            }
-        });
+        // Inicialización
+        window.onload = function() {
+            initMap();
+            setTimeout(() => {
+                cargarVias();
+                cargarAlcantarillado();
+            }, 100);
+        };
     </script>
 </body>
 </html>
