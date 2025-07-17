@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geovisor Predios y Agua Potable</title>
+    <title>Geovisor Predios, Agua, Alcantarillado y Vías</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
@@ -80,6 +80,14 @@
             background: linear-gradient(45deg, #1abc9c, #16a085);
         }
         
+        .stat-card.alcantarillado {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+        
+        .stat-card.vias {
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+        }
+        
         .controls {
             margin-bottom: 20px;
         }
@@ -121,6 +129,14 @@
         
         .btn.agua {
             background: linear-gradient(45deg, #1abc9c, #16a085);
+        }
+        
+        .btn.alcantarillado {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+        
+        .btn.vias {
+            background: linear-gradient(45deg, #34495e, #2c3e50);
         }
         
         .btn.secondary {
@@ -256,7 +272,7 @@
             color: #3498db;
         }
 
-        /* Nuevos estilos para el modo adaptativo */
+        /* Estilos para el modo adaptativo */
         .mode-selector {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -303,13 +319,12 @@
     <div class="container">
         <div class="sidebar">
             <div class="header">
-                <h1>🌍 Geovisor Predios y Agua Potable</h1>
-                <p>Visualización de información catastral</p>
+                <h1>🌍 Geovisor Predios, Agua, Alcantarillado y Vías</h1>
+                <p>Visualización de información catastral y redes</p>
             </div>
             
             <div id="status" class="status">📍 Inicializando mapa...</div>
             
-            <!-- Selector de modo -->
             <div class="mode-selector">
                 <div class="mode-btn active" onclick="setViewMode('adaptive')" id="modeAdaptive">
                     📱 Adaptivo
@@ -319,7 +334,6 @@
                 </div>
             </div>
             
-            <!-- Barra de progreso -->
             <div class="progress-bar" id="progressContainer" style="display:none;">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
@@ -340,6 +354,20 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <div class="layer-toggle">
+                    <label for="toggleAlcantarillado">🚽 Red Alcantarillado</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleAlcantarillado" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="layer-toggle">
+                    <label for="toggleVias">🛣️ Vías</label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleVias" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
             
             <div class="stats">
@@ -351,13 +379,29 @@
                     <h3 id="totalTubosAgua">0</h3>
                     <p>Tubos Agua</p>
                 </div>
+                <div class="stat-card alcantarillado">
+                    <h3 id="totalAlcantarillado">0</h3>
+                    <p>Tubos Alcant.</p>
+                </div>
+                <div class="stat-card vias">
+                    <h3 id="totalVias">0</h3>
+                    <p>Total Vías</p>
+                </div>
                 <div class="stat-card predios">
                     <h3 id="prediosVisibles">0</h3>
                     <p>Predios Visibles</p>
                 </div>
                 <div class="stat-card agua">
                     <h3 id="aguaVisibles">0</h3>
-                    <p>Tubos Visibles</p>
+                    <p>Agua Visibles</p>
+                </div>
+                <div class="stat-card alcantarillado">
+                    <h3 id="alcantarilladoVisibles">0</h3>
+                    <p>Alcant. Visibles</p>
+                </div>
+                <div class="stat-card vias">
+                    <h3 id="viasVisibles">0</h3>
+                    <p>Vías Visibles</p>
                 </div>
             </div>
             
@@ -392,6 +436,30 @@
                 
                 <button class="btn agua" onclick="aplicarFiltrosAgua()">🔍 Buscar Agua Potable</button>
                 
+                <div class="control-group">
+                    <label for="searchAlcantarillado">Buscar por SANITARIO:</label>
+                    <input type="text" id="searchAlcantarillado" placeholder="Ej: PRINCIPAL">
+                </div>
+                
+                <button class="btn alcantarillado" onclick="aplicarFiltrosAlcantarillado()">🔍 Buscar Alcantarillado</button>
+                
+                <div class="control-group">
+                    <label for="searchVias">Buscar por NOMBRE:</label>
+                    <input type="text" id="searchVias" placeholder="Ej: AVENIDA PRINCIPAL">
+                </div>
+                
+                <div class="control-group">
+                    <label for="filterTipoVia">Tipo de Vía:</label>
+                    <select id="filterTipoVia">
+                        <option value="">Todos los tipos</option>
+                        <option value="PRINCIPAL">Principal</option>
+                        <option value="SECUNDARIA">Secundaria</option>
+                        <option value="TERCIARIA">Terciaria</option>
+                    </select>
+                </div>
+                
+                <button class="btn vias" onclick="aplicarFiltrosVias()">🔍 Buscar Vías</button>
+                
                 <button class="btn secondary" onclick="limpiarFiltros()">🗑️ Limpiar Filtros</button>
                 <button class="btn secondary" onclick="centrarEnElPangui()">📍 Centrar Mapa</button>
                 <button class="btn secondary" onclick="cargarTodosPredios()">📍 Cargar Todos Predios</button>
@@ -406,6 +474,16 @@
                 <div class="spinner"></div>
                 <p>Cargando agua potable...</p>
             </div>
+            
+            <div id="loadingAlcantarillado" class="loading">
+                <div class="spinner"></div>
+                <p>Cargando alcantarillado...</p>
+            </div>
+            
+            <div id="loadingVias" class="loading">
+                <div class="spinner"></div>
+                <p>Cargando vías...</p>
+            </div>
         </div>
         
         <div class="map-container">
@@ -417,6 +495,8 @@
                 Zoom: <span id="currentZoom">12</span> | 
                 Predios: <span id="currentPredios">0</span> | 
                 Agua: <span id="currentAgua">0</span> |
+                Alcant.: <span id="currentAlcantarillado">0</span> |
+                Vías: <span id="currentVias">0</span> |
                 Modo: <span id="currentMode">Adaptivo</span>
             </div>
             <div id="map"></div>
@@ -434,11 +514,12 @@
         let map;
         const prediosLayer = L.layerGroup();
         const aguaLayer = L.layerGroup();
-        let currentPrediosData = [], currentAguaData = [];
+        const alcantarilladoLayer = L.layerGroup();
+        const viasLayer = L.layerGroup();
+        let currentPrediosData = [], currentAguaData = [], currentAlcantarilladoData = [], currentViasData = [];
         let loading = false, zoom = 12, timer;
         let viewMode = 'adaptive';
         let allPrediosCache = null;
-        let allAguaCache = null;
         
         // Configuración para modo adaptativo
         const ADAPTIVE_LIMITS = {
@@ -461,6 +542,8 @@
             // Añadir capas de datos al mapa
             prediosLayer.addTo(map);
             aguaLayer.addTo(map);
+            alcantarilladoLayer.addTo(map);
+            viasLayer.addTo(map);
             
             // Configurar toggles de capas
             document.getElementById('togglePredios').addEventListener('change', function(e) {
@@ -469,6 +552,14 @@
             
             document.getElementById('toggleAgua').addEventListener('change', function(e) {
                 e.target.checked ? aguaLayer.addTo(map) : map.removeLayer(aguaLayer);
+            });
+            
+            document.getElementById('toggleAlcantarillado').addEventListener('change', function(e) {
+                e.target.checked ? alcantarilladoLayer.addTo(map) : map.removeLayer(alcantarilladoLayer);
+            });
+            
+            document.getElementById('toggleVias').addEventListener('change', function(e) {
+                e.target.checked ? viasLayer.addTo(map) : map.removeLayer(viasLayer);
             });
             
             // Eventos del mapa
@@ -496,6 +587,8 @@
             // Cargar datos iniciales
             loadPrediosAdaptive();
             cargarAgua();
+            cargarAlcantarillado();
+            cargarVias();
         }
         
         // Función para cargar predios en modo adaptativo
@@ -895,16 +988,173 @@
             }
         }
         
-        // Funciones auxiliares para estilos
-        function getColorPredio(tipo) {
-            const colors = {
-                'URBANO': '#e74c3c',
-                'RURAL': '#2ecc71',
-                'INDUSTRIAL': '#3498db',
-                'COMERCIAL': '#f39c12',
-                'RESIDENCIAL': '#9b59b6'
-            };
-            return colors[tipo] || '#e67e22';
+        // Función para cargar alcantarillado sanitario
+        async function cargarAlcantarillado(filtros = {}) {
+            const loadingElement = document.getElementById('loadingAlcantarillado');
+            loadingElement.style.display = 'block';
+            
+            try {
+                let query = `${SUPABASE_URL}/rest/v1/red_alcantarillado_sanitario?select=id,OBJECTID,Entity,Layer,Color,Linetype,Elevation,SANITARIO,Shape_Leng,geom`;
+                
+                const conditions = [];
+                if (filtros.sanitario) conditions.push(`SANITARIO.ilike.%${filtros.sanitario}%`);
+                
+                if (conditions.length > 0) query += `&${conditions.join('&')}`;
+                
+                query += '&limit=1000';
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                currentAlcantarilladoData = data;
+                renderizarAlcantarillado(data);
+                
+                updateStatus(`Red de alcantarillado cargada: ${data.length} registros`, 'success');
+                return data;
+            } catch (error) {
+                console.error('Error cargando alcantarillado:', error);
+                updateStatus(`Error alcantarillado: ${error.message}`, 'error');
+                throw error;
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+        
+        // Función para renderizar alcantarillado
+        function renderizarAlcantarillado(data) {
+            alcantarilladoLayer.clearLayers();
+            let contador = 0;
+            
+            if (!data || data.length === 0) {
+                console.warn('No hay datos de alcantarillado para renderizar');
+                updateStatus('No hay datos de alcantarillado', 'error');
+                return;
+            }
+
+            data.forEach(item => {
+                try {
+                    let geom;
+                    if (item.geom) {
+                        geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    } else {
+                        console.warn('Elemento sin geometría:', item);
+                        return;
+                    }
+
+                    if (!geom || !geom.type || !geom.coordinates) {
+                        console.warn('Geometría inválida:', geom);
+                        return;
+                    }
+
+                    // Estilo para alcantarillado (color morado)
+                    const estilo = {
+                        color: '#9b59b6',
+                        weight: 3,
+                        opacity: 1,
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                        dashArray: item.SANITARIO === 'PRINCIPAL' ? null : '5, 3'
+                    };
+
+                    const layer = L.geoJSON(geom, {
+                        style: estilo
+                    }).bindPopup(crearPopupAlcantarillado(item));
+
+                    alcantarilladoLayer.addLayer(layer);
+                    contador++;
+
+                } catch (e) {
+                    console.error('Error renderizando alcantarillado:', e, item);
+                }
+            });
+
+            document.getElementById('totalAlcantarillado').textContent = data.length.toLocaleString();
+            document.getElementById('alcantarilladoVisibles').textContent = contador.toLocaleString();
+            document.getElementById('currentAlcantarillado').textContent = contador.toLocaleString();
+        }
+        
+        // Función para cargar vías
+        async function cargarVias(filtros = {}) {
+            const loadingElement = document.getElementById('loadingVias');
+            loadingElement.style.display = 'block';
+            
+            try {
+                let query = `${SUPABASE_URL}/rest/v1/vias?select=id,OBJECTID,NOMBRE,PAR_BARRIO,Shape_Leng,Tipo,geom`;
+                
+                const conditions = [];
+                if (filtros.nombre) conditions.push(`NOMBRE.ilike.%${filtros.nombre}%`);
+                if (filtros.tipo) conditions.push(`Tipo.eq.${filtros.tipo}`);
+                
+                if (conditions.length > 0) query += `&${conditions.join('&')}`;
+                
+                query += '&limit=1000';
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+                
+                const data = await response.json();
+                currentViasData = data;
+                renderizarVias(data);
+                
+                updateStatus(`Vías cargadas: ${data.length}`, 'success');
+            } catch (error) {
+                console.error('Error cargando vías:', error);
+                updateStatus(`Error vías: ${error.message}`, 'error');
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+        
+        // Función para renderizar vías
+        function renderizarVias(data) {
+            viasLayer.clearLayers();
+            let contador = 0;
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    // Estilo basado en el tipo de vía
+                    const estilo = {
+                        color: getColorVia(item.Tipo),
+                        weight: getWeightVia(item.Tipo),
+                        opacity: 1,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    };
+                    
+                    const layer = L.geoJSON(geom, {
+                        style: estilo
+                    }).bindPopup(crearPopupVia(item));
+                    
+                    viasLayer.addLayer(layer);
+                    contador++;
+                } catch (e) {
+                    console.error('Error renderizando vía:', e);
+                }
+            });
+            
+            document.getElementById('totalVias').textContent = data.length.toLocaleString();
+            document.getElementById('viasVisibles').textContent = contador.toLocaleString();
+            document.getElementById('currentVias').textContent = contador.toLocaleString();
         }
         
         // Funciones para crear popups
@@ -934,6 +1184,61 @@
                     <div class="popup-field"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
                 </div>
             `;
+        }
+        
+        function crearPopupAlcantarillado(item) {
+            return `
+                <div class="popup-custom">
+                    <div class="popup-title">🚽 Alcantarillado: ${item.OBJECTID || 'N/A'}</div>
+                    <div class="popup-field"><strong>Tipo:</strong> ${item.SANITARIO || 'N/A'}</div>
+                    <div class="popup-field"><strong>Layer:</strong> ${item.Layer || 'N/A'}</div>
+                    <div class="popup-field"><strong>Entity:</strong> ${item.Entity || 'N/A'}</div>
+                    <div class="popup-field"><strong>Color:</strong> ${item.Color || 'N/A'}</div>
+                    <div class="popup-field"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
+                </div>
+            `;
+        }
+        
+        function crearPopupVia(item) {
+            return `
+                <div class="popup-custom">
+                    <div class="popup-title">🛣️ Vía: ${item.NOMBRE || 'N/A'}</div>
+                    <div class="popup-field"><strong>ID:</strong> ${item.OBJECTID || 'N/A'}</div>
+                    <div class="popup-field"><strong>Tipo:</strong> ${item.Tipo || 'N/A'}</div>
+                    <div class="popup-field"><strong>Barrio:</strong> ${item.PAR_BARRIO || 'N/A'}</div>
+                    <div class="popup-field"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
+                </div>
+            `;
+        }
+        
+        // Funciones auxiliares para estilos
+        function getColorPredio(tipo) {
+            const colors = {
+                'URBANO': '#e74c3c',
+                'RURAL': '#2ecc71',
+                'INDUSTRIAL': '#3498db',
+                'COMERCIAL': '#f39c12',
+                'RESIDENCIAL': '#9b59b6'
+            };
+            return colors[tipo] || '#e67e22';
+        }
+        
+        function getColorVia(tipo) {
+            const colors = {
+                'PRINCIPAL': '#e74c3c',
+                'SECUNDARIA': '#f39c12',
+                'TERCIARIA': '#3498db'
+            };
+            return colors[tipo] || '#34495e';
+        }
+        
+        function getWeightVia(tipo) {
+            const weights = {
+                'PRINCIPAL': 4,
+                'SECUNDARIA': 3,
+                'TERCIARIA': 2
+            };
+            return weights[tipo] || 2;
         }
         
         // Funciones para cargar filtros
@@ -982,11 +1287,29 @@
             cargarAgua(filtros);
         }
         
+        function aplicarFiltrosAlcantarillado() {
+            const filtros = {
+                sanitario: document.getElementById('searchAlcantarillado').value.trim()
+            };
+            cargarAlcantarillado(filtros);
+        }
+        
+        function aplicarFiltrosVias() {
+            const filtros = {
+                nombre: document.getElementById('searchVias').value.trim(),
+                tipo: document.getElementById('filterTipoVia').value
+            };
+            cargarVias(filtros);
+        }
+        
         function limpiarFiltros() {
             document.getElementById('searchPredio').value = '';
             document.getElementById('filterTipoPredio').value = '';
             document.getElementById('searchAgua').value = '';
             document.getElementById('filterBarrio').value = '';
+            document.getElementById('searchAlcantarillado').value = '';
+            document.getElementById('searchVias').value = '';
+            document.getElementById('filterTipoVia').value = '';
             
             if (viewMode === 'adaptive') {
                 loadPrediosAdaptive();
@@ -995,6 +1318,8 @@
             }
             
             cargarAgua();
+            cargarAlcantarillado();
+            cargarVias();
         }
         
         function centrarEnElPangui() {
