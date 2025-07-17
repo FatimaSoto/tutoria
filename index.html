@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geovisor Vías, Alcantarillado y Agua Potable</title>
+    <title>Geovisor Predios y Agua Potable</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
@@ -25,7 +25,7 @@
         }
         
         .sidebar {
-            width: 340px;
+            width: 350px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             padding: 20px;
@@ -72,12 +72,8 @@
             text-align: center;
         }
         
-        .stat-card.vias {
+        .stat-card.predios {
             background: linear-gradient(45deg, #e67e22, #d35400);
-        }
-        
-        .stat-card.alcantarillado {
-            background: linear-gradient(45deg, #3498db, #2c3e50);
         }
         
         .stat-card.agua {
@@ -119,12 +115,8 @@
             font-size: 14px;
         }
         
-        .btn.vias {
+        .btn.predios {
             background: linear-gradient(45deg, #e67e22, #d35400);
-        }
-        
-        .btn.alcantarillado {
-            background: linear-gradient(45deg, #3498db, #2c3e50);
         }
         
         .btn.agua {
@@ -139,6 +131,7 @@
             text-align: center;
             padding: 20px;
             color: #7f8c8d;
+            display: none;
         }
         
         .spinner {
@@ -154,14 +147,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        
-        .info-panel {
-            background: #ecf0f1;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            display: none;
         }
         
         .status {
@@ -250,14 +235,67 @@
             z-index: 1000;
         }
         
-        .section-title {
-            background: #34495e;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
+        .popup-custom {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 14px;
-            font-weight: 600;
-            margin: 15px 0 10px 0;
+            line-height: 1.4;
+        }
+        
+        .popup-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .popup-field {
+            margin-bottom: 4px;
+        }
+        
+        .popup-field strong {
+            color: #3498db;
+        }
+
+        /* Nuevos estilos para el modo adaptativo */
+        .mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .mode-btn {
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            background: white;
+            color: #2c3e50;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            border-color: #3498db;
+            background: #3498db;
+            color: white;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e67e22, #d35400);
+            width: 0%;
+            transition: width 0.3s;
         }
     </style>
 </head>
@@ -265,30 +303,38 @@
     <div class="container">
         <div class="sidebar">
             <div class="header">
-                <h1>🌍 Geovisor Multicapa</h1>
-                <p>Vías, Alcantarillado y Agua Potable</p>
+                <h1>🌍 Geovisor Predios y Agua Potable</h1>
+                <p>Visualización de información catastral</p>
             </div>
             
             <div id="status" class="status">📍 Inicializando mapa...</div>
             
+            <!-- Selector de modo -->
+            <div class="mode-selector">
+                <div class="mode-btn active" onclick="setViewMode('adaptive')" id="modeAdaptive">
+                    📱 Adaptivo
+                </div>
+                <div class="mode-btn" onclick="setViewMode('all')" id="modeAll">
+                    🌍 Todos
+                </div>
+            </div>
+            
+            <!-- Barra de progreso -->
+            <div class="progress-bar" id="progressContainer" style="display:none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
             <div class="layer-controls">
                 <h3>Capas</h3>
                 <div class="layer-toggle">
-                    <label for="toggleVias">🛣️ Vías</label>
+                    <label for="togglePredios">🏘️ Predios</label>
                     <label class="switch">
-                        <input type="checkbox" id="toggleVias" checked>
+                        <input type="checkbox" id="togglePredios" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
                 <div class="layer-toggle">
-                    <label for="toggleAlcantarillado">🚰 Alcantarillado</label>
-                    <label class="switch">
-                        <input type="checkbox" id="toggleAlcantarillado" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="layer-toggle">
-                    <label for="toggleAgua">💧 Agua Potable</label>
+                    <label for="toggleAgua">💧 Red Agua Potable</label>
                     <label class="switch">
                         <input type="checkbox" id="toggleAgua" checked>
                         <span class="slider"></span>
@@ -297,74 +343,44 @@
             </div>
             
             <div class="stats">
-                <div class="stat-card vias">
-                    <h3 id="totalVias">0</h3>
-                    <p>Total Vías</p>
-                </div>
-                <div class="stat-card alcantarillado">
-                    <h3 id="totalTubos">0</h3>
-                    <p>Total Tubos Alcant.</p>
+                <div class="stat-card predios">
+                    <h3 id="totalPredios">0</h3>
+                    <p>Total Predios</p>
                 </div>
                 <div class="stat-card agua">
                     <h3 id="totalTubosAgua">0</h3>
-                    <p>Total Tubos Agua</p>
+                    <p>Tubos Agua</p>
                 </div>
-                <div class="stat-card vias">
-                    <h3 id="longitudVias">0</h3>
-                    <p>Long. Vías (m)</p>
-                </div>
-                <div class="stat-card alcantarillado">
-                    <h3 id="longitudAlcantarillado">0</h3>
-                    <p>Long. Alcant. (m)</p>
+                <div class="stat-card predios">
+                    <h3 id="prediosVisibles">0</h3>
+                    <p>Predios Visibles</p>
                 </div>
                 <div class="stat-card agua">
-                    <h3 id="longitudAgua">0</h3>
-                    <p>Long. Agua (m)</p>
+                    <h3 id="aguaVisibles">0</h3>
+                    <p>Tubos Visibles</p>
                 </div>
             </div>
             
             <div class="controls">
-                <div class="section-title">🛣️ VÍAS</div>
                 <div class="control-group">
-                    <label for="searchNombre">Buscar por Nombre:</label>
-                    <input type="text" id="searchNombre" placeholder="Ej: Avenida Principal">
+                    <label for="searchPredio">Buscar ID Predio:</label>
+                    <input type="text" id="searchPredio" placeholder="Ej: ABC123">
                 </div>
                 
                 <div class="control-group">
-                    <label for="filterTipo">Filtrar por Tipo:</label>
-                    <select id="filterTipo">
+                    <label for="filterTipoPredio">Tipo de Predio:</label>
+                    <select id="filterTipoPredio">
                         <option value="">Todos los tipos</option>
+                        <option value="URBANO">Urbano</option>
+                        <option value="RURAL">Rural</option>
                     </select>
                 </div>
                 
-                <button class="btn vias" onclick="aplicarFiltrosVias()">🔍 Buscar Vías</button>
+                <button class="btn predios" onclick="aplicarFiltrosPredios()">🔍 Buscar Predios</button>
                 
-                <div class="section-title">🚰 ALCANTARILLADO</div>
-                <div class="control-group">
-                    <label for="searchEntity">Buscar por Entity:</label>
-                    <input type="text" id="searchEntity" placeholder="Ej: TUBO_200">
-                </div>
-                
-                <div class="control-group">
-                    <label for="filterLayer">Filtrar por Layer:</label>
-                    <select id="filterLayer">
-                        <option value="">Todos los layers</option>
-                    </select>
-                </div>
-                
-                <button class="btn alcantarillado" onclick="aplicarFiltrosAlcantarillado()">🔍 Buscar Alcantarillado</button>
-                
-                <div class="section-title">💧 AGUA POTABLE</div>
                 <div class="control-group">
                     <label for="searchAgua">Buscar por AGUA:</label>
                     <input type="text" id="searchAgua" placeholder="Ej: TUBO_PVC">
-                </div>
-                
-                <div class="control-group">
-                    <label for="filterLayerAgua">Filtrar por Layer:</label>
-                    <select id="filterLayerAgua">
-                        <option value="">Todos los layers</option>
-                    </select>
                 </div>
                 
                 <div class="control-group">
@@ -378,39 +394,30 @@
                 
                 <button class="btn secondary" onclick="limpiarFiltros()">🗑️ Limpiar Filtros</button>
                 <button class="btn secondary" onclick="centrarEnElPangui()">📍 Centrar Mapa</button>
+                <button class="btn secondary" onclick="cargarTodosPredios()">📍 Cargar Todos Predios</button>
             </div>
             
-            <div id="loadingVias" class="loading" style="display: none;">
+            <div id="loadingPredios" class="loading">
                 <div class="spinner"></div>
-                <p>Cargando vías...</p>
+                <p id="loadingTextPredios">Cargando predios...</p>
             </div>
             
-            <div id="loadingAlcantarillado" class="loading" style="display: none;">
-                <div class="spinner"></div>
-                <p>Cargando alcantarillado...</p>
-            </div>
-            
-            <div id="loadingAgua" class="loading" style="display: none;">
+            <div id="loadingAgua" class="loading">
                 <div class="spinner"></div>
                 <p>Cargando agua potable...</p>
-            </div>
-            
-            <div id="infoPanel" class="info-panel">
-                <h3 id="infoTitle">Información</h3>
-                <div id="infoDetails"></div>
             </div>
         </div>
         
         <div class="map-container">
             <div id="mapLoading" class="loading" style="display: none;">
                 <div class="spinner"></div>
-                <p>Cargando datos...</p>
+                <p id="loadingText">Cargando datos...</p>
             </div>
             <div class="zoom-info">
                 Zoom: <span id="currentZoom">12</span> | 
-                Vías: <span id="currentVias">0</span> | 
-                Alcant: <span id="currentTubos">0</span> |
-                Agua: <span id="currentTubosAgua">0</span>
+                Predios: <span id="currentPredios">0</span> | 
+                Agua: <span id="currentAgua">0</span> |
+                Modo: <span id="currentMode">Adaptivo</span>
             </div>
             <div id="map"></div>
         </div>
@@ -425,32 +432,39 @@
         
         // Variables globales
         let map;
-        const viasLayer = L.layerGroup();
-        const alcantarilladoLayer = L.layerGroup();
+        const prediosLayer = L.layerGroup();
         const aguaLayer = L.layerGroup();
-        let currentViasData = [], currentAlcantarilladoData = [], currentAguaData = [];
+        let currentPrediosData = [], currentAguaData = [];
+        let loading = false, zoom = 12, timer;
+        let viewMode = 'adaptive';
+        let allPrediosCache = null;
+        let allAguaCache = null;
         
+        // Configuración para modo adaptativo
+        const ADAPTIVE_LIMITS = {
+            8:  { limit: 500,  method: 'centroids' },
+            10: { limit: 2000, method: 'centroids' },
+            12: { limit: 5000, method: 'simplified' },
+            14: { limit: null, method: 'normal' },
+            16: { limit: null, method: 'normal' }
+        };
+
         // Función para inicializar el mapa
         function initMap() {
-            map = L.map('map').setView(EL_PANGUI_COORDS, 12);
+            map = L.map('map').setView(EL_PANGUI_COORDS, zoom);
             
-            // Capas base
+            // Capa base
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap'
             }).addTo(map);
             
             // Añadir capas de datos al mapa
-            viasLayer.addTo(map);
-            alcantarilladoLayer.addTo(map);
+            prediosLayer.addTo(map);
             aguaLayer.addTo(map);
             
             // Configurar toggles de capas
-            document.getElementById('toggleVias').addEventListener('change', function(e) {
-                e.target.checked ? viasLayer.addTo(map) : map.removeLayer(viasLayer);
-            });
-            
-            document.getElementById('toggleAlcantarillado').addEventListener('change', function(e) {
-                e.target.checked ? alcantarilladoLayer.addTo(map) : map.removeLayer(alcantarilladoLayer);
+            document.getElementById('togglePredios').addEventListener('change', function(e) {
+                e.target.checked ? prediosLayer.addTo(map) : map.removeLayer(prediosLayer);
             });
             
             document.getElementById('toggleAgua').addEventListener('change', function(e) {
@@ -459,29 +473,61 @@
             
             // Eventos del mapa
             map.on('zoomend', function() {
-                document.getElementById('currentZoom').textContent = map.getZoom();
+                const newZoom = map.getZoom();
+                document.getElementById('currentZoom').textContent = newZoom;
+                if (newZoom !== zoom) {
+                    zoom = newZoom;
+                    if (viewMode === 'adaptive') {
+                        clearTimeout(timer);
+                        timer = setTimeout(loadPrediosAdaptive, 500);
+                    }
+                }
+            });
+            
+            map.on('moveend', function() {
+                if (viewMode === 'adaptive') {
+                    clearTimeout(timer);
+                    timer = setTimeout(loadPrediosAdaptive, 500);
+                }
             });
             
             updateStatus('Mapa listo', 'success');
+            
+            // Cargar datos iniciales
+            loadPrediosAdaptive();
+            cargarAgua();
         }
         
-        // Función para cargar vías desde Supabase
-        async function cargarVias(filtros = {}) {
-            const loadingElement = document.getElementById('loadingVias');
-            loadingElement.style.display = 'block';
+        // Función para cargar predios en modo adaptativo
+        async function loadPrediosAdaptive() {
+            if (loading || viewMode !== 'adaptive') return;
+            loading = true;
+            showLoader(true, 'Cargando datos adaptativos...');
             
             try {
-                let query = `${SUPABASE_URL}/rest/v1/vias?select=*`;
+                const bounds = map.getBounds();
+                const zoomLevel = Math.floor(zoom);
+                const config = ADAPTIVE_LIMITS[
+                    Object.keys(ADAPTIVE_LIMITS).reverse().find(l => zoomLevel >= l) || 8
+                ];
                 
-                const conditions = [];
-                if (filtros.nombre) conditions.push(`NOMBRE.ilike.%${filtros.nombre}%`);
-                if (filtros.tipo) conditions.push(`Tipo.eq.${filtros.tipo}`);
+                let url = `${SUPABASE_URL}/rest/v1/predios_texto?` +
+                    `select=objectid,id_pred,tipo_pred,uso_pred,area_graf,desprov,descan,avaluo_tot,geom` +
+                    `&order=area_graf.desc`;
                 
-                if (conditions.length > 0) query += `&${conditions.join('&')}`;
+                // Aplicar límite si existe en la configuración
+                if (config.limit) {
+                    url += `&limit=${config.limit}`;
+                }
                 
-                query += '&limit=1000';
+                // Para zooms altos, filtrar por bounding box
+                if (zoomLevel >= 12) {
+                    url += `&geom=cs.{"type":"Polygon","coordinates":[[[${bounds.getWest()},${bounds.getSouth()}],` +
+                        `[${bounds.getEast()},${bounds.getSouth()}],[${bounds.getEast()},${bounds.getNorth()}],` +
+                        `[${bounds.getWest()},${bounds.getNorth()}],[${bounds.getWest()},${bounds.getSouth()}]]]}`;
+                }
                 
-                const response = await fetch(query, {
+                const response = await fetch(url, {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
@@ -490,95 +536,195 @@
                 
                 if (!response.ok) throw new Error(`Error ${response.status}`);
                 
-                const data = await response.json();
-                currentViasData = data;
-                renderizarVias(data);
-                actualizarEstadisticasVias(data);
-                cargarTiposDisponibles(data);
+                let data = await response.json();
                 
-                updateStatus(`Vías cargadas: ${data.length}`, 'success');
+                // Simplificar geometrías para zooms bajos
+                if (config.method === 'centroids' && data.length > 0) {
+                    data = data.map(item => {
+                        if (item.geom) {
+                            try {
+                                const geo = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                                let centroid = [0, 0];
+                                if (geo.type === 'Polygon' && geo.coordinates && geo.coordinates[0]) {
+                                    const coords = geo.coordinates[0];
+                                    const len = coords.length;
+                                    centroid = coords.reduce((acc, coord) => [acc[0] + coord[0], acc[1] + coord[1]], [0, 0]);
+                                    centroid = [centroid[0] / len, centroid[1] / len];
+                                }
+                                item.geom = {
+                                    type: 'Point',
+                                    coordinates: centroid
+                                };
+                            } catch (e) {
+                                console.warn('Error procesando geometría:', e);
+                            }
+                        }
+                        return item;
+                    });
+                }
+                
+                currentPrediosData = data;
+                renderizarPredios(data);
+                updateStatus(`✅ Cargados: ${data.length} predios (modo adaptativo)`, 'success');
+                
             } catch (error) {
-                console.error('Error cargando vías:', error);
-                updateStatus(`Error vías: ${error.message}`, 'error');
+                console.error('Error cargando predios adaptativos:', error);
+                updateStatus(`Error predios: ${error.message}`, 'error');
             } finally {
-                loadingElement.style.display = 'none';
+                loading = false;
+                showLoader(false);
             }
         }
         
-        // Función para renderizar vías en el mapa
-        function renderizarVias(data) {
-            viasLayer.clearLayers();
-            let contador = 0;
-            
-            data.forEach(item => {
-                if (!item.geom) return;
-                
-                try {
-                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
-                    
-                    if (geom.type === 'LineString' || geom.type === 'MultiLineString') {
-                        const layer = L.geoJSON(geom, {
-                            style: {
-                                color: getColorByType(item.Tipo),
-                                weight: 4,
-                                opacity: 0.8
-                            }
-                        }).bindPopup(crearPopupVias(item));
-                        
-                        viasLayer.addLayer(layer);
-                        contador++;
-                    }
-                } catch (e) {
-                    console.error('Error procesando geometría:', e);
-                }
-            });
-            
-            document.getElementById('currentVias').textContent = contador;
-        }
-        
-        // Función para cargar alcantarillado desde Supabase
-        async function cargarAlcantarillado(filtros = {}) {
-            const loadingElement = document.getElementById('loadingAlcantarillado');
-            loadingElement.style.display = 'block';
+        // Función para cargar TODOS los predios
+        async function cargarTodosPredios() {
+            if (loading) return;
+            loading = true;
+            showProgress(true);
+            showLoader(true, 'Iniciando carga masiva de predios...');
             
             try {
-                let query = `${SUPABASE_URL}/rest/v1/red_alcantarillado_sanitario?select=*`;
-                
-                const conditions = [];
-                if (filtros.entity) conditions.push(`Entity.ilike.%${filtros.entity}%`);
-                if (filtros.layer) conditions.push(`Layer.eq.${filtros.layer}`);
-                
-                if (conditions.length > 0) query += `&${conditions.join('&')}`;
-                
-                query += '&limit=500';
-                
-                const response = await fetch(query, {
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                // Intentar función RPC optimizada primero
+                try {
+                    setLoadingText('🚀 Probando función RPC get_predios_geo...');
+                    updateProgress(10);
+                    
+                    const data = await callRPC('get_predios_geo', {});
+                    
+                    updateProgress(80);
+                    setLoadingText('📊 Procesando geometrías RPC...');
+                    
+                    currentPrediosData = data.map(item => ({
+                        objectid: item.objectid,
+                        id_pred: item.id_pred || '',
+                        tipo_pred: item.tipo_pred || '',
+                        uso_pred: item.uso_pred || '',
+                        area_graf: item.area_graf,
+                        desprov: item.desprov || '',
+                        descan: item.descan || '',
+                        avaluo_tot: item.avaluo_tot,
+                        geom: item.geom
+                    }));
+                    
+                    allPrediosCache = currentPrediosData;
+                    updateProgress(100);
+                    setLoadingText('✅ Renderizando desde RPC...');
+                    
+                    setTimeout(() => {
+                        renderizarPredios(currentPrediosData);
+                        updateStatus(`🎉 Carga RPC exitosa: ${currentPrediosData.length.toLocaleString()} predios`, 'success');
+                    }, 200);
+                    
+                } catch (rpcError) {
+                    console.warn('RPC get_predios_geo falló:', rpcError);
+                    setLoadingText('📦 RPC falló - usando carga por lotes...');
+                    updateProgress(0);
+                    
+                    // Fallback: Carga por lotes tradicional
+                    const batchSize = 1000;
+                    let offset = 0;
+                    let allData = [];
+                    let batchCount = 0;
+                    let hasMore = true;
+                    
+                    while (hasMore && offset < 15000) {
+                        batchCount++;
+                        setLoadingText(`📥 Cargando lote ${batchCount} (${offset}-${offset + batchSize})...`);
+                        updateProgress((offset / 15000) * 100);
+                        
+                        try {
+                            const batch = await loadBatchPredios(offset, batchSize);
+                            
+                            if (batch.length === 0) {
+                                hasMore = false;
+                            } else {
+                                allData.push(...batch);
+                                offset += batchSize;
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                                
+                                if (batchCount % 2 === 0) {
+                                    document.getElementById('prediosVisibles').textContent = allData.length.toLocaleString();
+                                }
+                            }
+                            
+                            if (batch.length < batchSize) {
+                                hasMore = false;
+                            }
+                            
+                        } catch (batchError) {
+                            console.error(`Error en lote ${batchCount}:`, batchError);
+                            offset += batchSize;
+                            if (batchCount > 15) {
+                                hasMore = false;
+                            }
+                        }
                     }
-                });
+                    
+                    allPrediosCache = allData;
+                    currentPrediosData = allData;
+                    updateProgress(100);
+                    setLoadingText('✅ Renderizando desde lotes...');
+                    
+                    setTimeout(() => {
+                        renderizarPredios(currentPrediosData);
+                        updateStatus(`✅ Carga por lotes exitosa: ${currentPrediosData.length.toLocaleString()} predios`, 'success');
+                    }, 200);
+                }
                 
-                if (!response.ok) throw new Error(`Error ${response.status}`);
-                
-                const data = await response.json();
-                currentAlcantarilladoData = data;
-                renderizarAlcantarillado(data);
-                actualizarEstadisticasAlcantarillado(data);
-                cargarLayersDisponibles(data);
-                
-                updateStatus(`Alcantarillado cargado: ${data.length}`, 'success');
-            } catch (error) {
-                console.error('Error cargando alcantarillado:', error);
-                updateStatus(`Error alcantarillado: ${error.message}`, 'error');
+            } catch (e) {
+                console.error('Error en carga masiva:', e);
+                updateStatus('❌ Error general en carga masiva', 'error');
             } finally {
-                loadingElement.style.display = 'none';
+                loading = false;
+                setTimeout(() => {
+                    showLoader(false);
+                    showProgress(false);
+                }, 500);
             }
         }
         
-        // Función para renderizar alcantarillado en el mapa
-        function renderizarAlcantarillado(data) {
-            alcantarilladoLayer.clearLayers();
+        // Función para cargar un lote de predios
+        async function loadBatchPredios(offset, limit) {
+            const url = `${SUPABASE_URL}/rest/v1/predios_texto?select=objectid,id_pred,tipo_pred,uso_pred,area_graf,desprov,descan,avaluo_tot,geom&offset=${offset}&limit=${limit}&order=objectid.asc`;
+            
+            const response = await fetch(url, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            return await response.json();
+        }
+        
+        // Función para llamar a RPC de Supabase
+        async function callRPC(functionName, params) {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(params)
+            });
+            
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`RPC Error ${res.status}: ${errorText}`);
+            }
+            return await res.json();
+        }
+        
+        // Función para renderizar predios en el mapa
+        function renderizarPredios(data) {
+            prediosLayer.clearLayers();
             let contador = 0;
             
             data.forEach(item => {
@@ -587,24 +733,50 @@
                 try {
                     const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
                     
-                    if (geom.type === 'LineString' || geom.type === 'MultiLineString') {
-                        const layer = L.geoJSON(geom, {
+                    let layer;
+                    if (geom.type === 'Polygon' || geom.type === 'MultiPolygon') {
+                        // Render como polígono con borde visible pero sin relleno
+                        layer = L.geoJSON(geom, {
                             style: {
-                                color: getColorByLayer(item.Layer),
-                                weight: 3,
-                                opacity: 0.8
+                                color: getColorPredio(item.tipo_pred),
+                                weight: zoom > 14 ? 2 : 1,
+                                fillOpacity: 0, // Sin relleno
+                                opacity: 1,    // Borde completamente visible
+                                fillColor: 'transparent'
                             }
-                        }).bindPopup(crearPopupAlcantarillado(item));
-                        
-                        alcantarilladoLayer.addLayer(layer);
+                        }).bindPopup(crearPopupPredio(item));
+                    } else if (geom.type === 'Point') {
+                        // Render como círculo para centroides
+                        layer = L.circleMarker([geom.coordinates[1], geom.coordinates[0]], {
+                            radius: Math.min(zoom, 8),
+                            color: getColorPredio(item.tipo_pred),
+                            weight: 2,
+                            fillOpacity: 0.7
+                        }).bindPopup(crearPopupPredio(item));
+                    }
+                    
+                    if (layer) {
+                        prediosLayer.addLayer(layer);
                         contador++;
                     }
                 } catch (e) {
-                    console.error('Error procesando geometría:', e);
+                    console.error('Error renderizando predio:', e);
                 }
             });
             
-            document.getElementById('currentTubos').textContent = contador;
+            document.getElementById('totalPredios').textContent = currentPrediosData.length.toLocaleString();
+            document.getElementById('prediosVisibles').textContent = contador.toLocaleString();
+            document.getElementById('currentPredios').textContent = contador.toLocaleString();
+            
+            if (contador > 0 && viewMode === 'all') {
+                setTimeout(() => {
+                    try {
+                        map.fitBounds(prediosLayer.getBounds(), {padding: [50, 50]});
+                    } catch (e) {
+                        console.warn('Error ajustando vista:', e);
+                    }
+                }, 100);
+            }
         }
         
         // Función para cargar agua potable desde Supabase
@@ -613,11 +785,11 @@
             loadingElement.style.display = 'block';
             
             try {
-                let query = `${SUPABASE_URL}/rest/v1/red_agua_potable?select=*`;
+                // Consulta con las columnas exactas de tu tabla
+                let query = `${SUPABASE_URL}/rest/v1/red_agua_potable?select=id,OBJECTID,Layer,AGUA,AREA,PAR_BARRIO,Shape_Leng,geom`;
                 
                 const conditions = [];
                 if (filtros.agua) conditions.push(`AGUA.ilike.%${filtros.agua}%`);
-                if (filtros.layer) conditions.push(`Layer.eq.${filtros.layer}`);
                 if (filtros.barrio) conditions.push(`PAR_BARRIO.ilike.%${filtros.barrio}%`);
                 
                 if (conditions.length > 0) query += `&${conditions.join('&')}`;
@@ -631,19 +803,22 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error(`Error ${response.status}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error ${response.status}: ${errorText}`);
+                }
                 
                 const data = await response.json();
                 currentAguaData = data;
                 renderizarAgua(data);
-                actualizarEstadisticasAgua(data);
-                cargarLayersAguaDisponibles(data);
                 cargarBarriosDisponibles(data);
                 
-                updateStatus(`Agua potable cargada: ${data.length}`, 'success');
+                updateStatus(`Agua potable cargada: ${data.length} registros`, 'success');
+                return data;
             } catch (error) {
                 console.error('Error cargando agua potable:', error);
-                updateStatus(`Error agua potable: ${error.message}`, 'error');
+                updateStatus(`Error: ${error.message}`, 'error');
+                throw error;
             } finally {
                 loadingElement.style.display = 'none';
             }
@@ -654,163 +829,114 @@
             aguaLayer.clearLayers();
             let contador = 0;
             
+            if (!data || data.length === 0) {
+                console.warn('No hay datos de agua potable para renderizar');
+                updateStatus('No hay datos de agua potable', 'error');
+                return;
+            }
+
             data.forEach(item => {
-                if (!item.geom) return;
-                
                 try {
-                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
-                    
-                    if (geom.type === 'LineString' || geom.type === 'MultiLineString') {
-                        const layer = L.geoJSON(geom, {
-                            style: {
-                                color: getColorByLayerAgua(item.Layer),
-                                weight: 3,
-                                opacity: 0.8
-                            }
-                        }).bindPopup(crearPopupAgua(item));
-                        
-                        aguaLayer.addLayer(layer);
-                        contador++;
+                    // Procesar la geometría
+                    let geom;
+                    if (item.geom) {
+                        geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    } else {
+                        console.warn('Elemento sin geometría:', item);
+                        return;
                     }
+
+                    // Validar la geometría
+                    if (!geom || !geom.type || !geom.coordinates) {
+                        console.warn('Geometría inválida:', geom);
+                        return;
+                    }
+
+                    // Estilo llamativo para mejor visibilidad
+                    const estilo = {
+                        color: '#1E90FF', // Azul brillante
+                        weight: 4,        // Grueso
+                        opacity: 1,       // Totalmente opaco
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                        dashArray: item.AGUA === 'PRINCIPAL' ? null : '5, 3'
+                    };
+
+                    // Crear la capa
+                    const layer = L.geoJSON(geom, {
+                        style: estilo
+                    }).bindPopup(crearPopupAgua(item));
+
+                    aguaLayer.addLayer(layer);
+                    contador++;
+
                 } catch (e) {
-                    console.error('Error procesando geometría:', e);
+                    console.error('Error renderizando elemento de agua:', e, item);
                 }
             });
-            
-            document.getElementById('currentTubosAgua').textContent = contador;
+
+            // Actualizar UI
+            document.getElementById('totalTubosAgua').textContent = data.length.toLocaleString();
+            document.getElementById('aguaVisibles').textContent = contador.toLocaleString();
+            document.getElementById('currentAgua').textContent = contador.toLocaleString();
+
+            // Ajustar vista si hay elementos
+            if (contador > 0) {
+                setTimeout(() => {
+                    try {
+                        const bounds = aguaLayer.getBounds();
+                        if (bounds.isValid()) {
+                            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+                        }
+                    } catch (e) {
+                        console.warn('Error ajustando vista:', e);
+                    }
+                }, 300);
+            }
         }
         
-        // Funciones auxiliares
-        function getColorByType(tipo) {
+        // Funciones auxiliares para estilos
+        function getColorPredio(tipo) {
             const colors = {
-                'Principal': '#e74c3c',
-                'Secundaria': '#f39c12',
-                'Terciaria': '#2ecc71',
-                'Peatonal': '#9b59b6',
-                'Carretera': '#3498db'
+                'URBANO': '#e74c3c',
+                'RURAL': '#2ecc71',
+                'INDUSTRIAL': '#3498db',
+                'COMERCIAL': '#f39c12',
+                'RESIDENCIAL': '#9b59b6'
             };
             return colors[tipo] || '#e67e22';
         }
         
-        function getColorByLayer(layer) {
-            const colors = {
-                'TUBO_200': '#e74c3c',
-                'TUBO_150': '#3498db',
-                'TUBO_100': '#2ecc71',
-                'COLECTOR': '#9b59b6',
-                'CONEXION': '#f39c12'
-            };
-            return colors[layer] || '#34495e';
-        }
-        
-        function getColorByLayerAgua(layer) {
-            const colors = {
-                'TUBO_63': '#1abc9c',
-                'TUBO_50': '#16a085',
-                'TUBO_40': '#27ae60',
-                'TUBO_32': '#2ecc71',
-                'TUBO_25': '#3498db',
-                'CONEXION_AGUA': '#e67e22',
-                'MATRIZ': '#8e44ad'
-            };
-            return colors[layer] || '#1abc9c';
-        }
-        
-        function crearPopupVias(item) {
+        // Funciones para crear popups
+        function crearPopupPredio(item) {
             return `
-                <div style="font-size: 14px; line-height: 1.4;">
-                    <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px;">🛣️ VÍA - ID: ${item.id}</div>
-                    <div style="margin-bottom: 4px;"><strong>Nombre:</strong> ${item.NOMBRE || 'N/A'}</div>
-                    <div style="margin-bottom: 4px;"><strong>Tipo:</strong> ${item.Tipo || 'N/A'}</div>
-                    <div style="margin-bottom: 4px;"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
-                </div>
-            `;
-        }
-        
-        function crearPopupAlcantarillado(item) {
-            return `
-                <div style="font-size: 14px; line-height: 1.4;">
-                    <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px;">🚰 ALCANTARILLADO - ID: ${item.OBJECTID}</div>
-                    <div style="margin-bottom: 4px;"><strong>Entity:</strong> ${item.Entity || 'N/A'}</div>
-                    <div style="margin-bottom: 4px;"><strong>Layer:</strong> ${item.Layer || 'N/A'}</div>
-                    <div style="margin-bottom: 4px;"><strong>Longitud:</strong> ${item.Length ? item.Length.toFixed(2) + ' m' : 'N/A'}</div>
+                <div class="popup-custom">
+                    <div class="popup-title">🏘️ Predio: ${item.id_pred || 'N/A'}</div>
+                    <div class="popup-field"><strong>ID:</strong> ${item.objectid || 'N/A'}</div>
+                    <div class="popup-field"><strong>Tipo:</strong> ${item.tipo_pred || 'N/A'}</div>
+                    <div class="popup-field"><strong>Uso:</strong> ${item.uso_pred || 'N/A'}</div>
+                    <div class="popup-field"><strong>Área:</strong> ${item.area_graf ? item.area_graf + ' m²' : 'N/A'}</div>
+                    <div class="popup-field"><strong>Provincia:</strong> ${item.desprov || 'N/A'}</div>
+                    <div class="popup-field"><strong>Cantón:</strong> ${item.descan || 'N/A'}</div>
+                    <div class="popup-field"><strong>Avalúo:</strong> ${item.avaluo_tot ? '$' + parseFloat(item.avaluo_tot).toLocaleString('es-ES', {minimumFractionDigits: 2}) : 'N/A'}</div>
                 </div>
             `;
         }
         
         function crearPopupAgua(item) {
             return `
-                <div style="font-size: 14px; line-height: 1.4;">
-                    <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px;">💧 AGUA POTABLE - ID: ${item.OBJECTID}</div>
-                    <div style="margin-bottom: 4px;"><strong>Tipo:</strong> ${item.AGUA || 'N/A'}</div>
-                    <div style="margin-bottom: 4px;"><strong>Layer:</strong> ${item.Layer || 'N/A'}</div>
-                    <div style="margin-bottom: 4px;"><strong>Barrio:</strong> ${item.PAR_BARRIO || 'N/A'}</div>
-                    <div style="margin-bottom: 4px;"><strong>Área:</strong> ${item.AREA ? item.AREA.toFixed(2) + ' m²' : 'N/A'}</div>
-                    <div style="margin-bottom: 4px;"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
+                <div class="popup-custom">
+                    <div class="popup-title">💧 Agua Potable: ${item.OBJECTID || 'N/A'}</div>
+                    <div class="popup-field"><strong>Tipo:</strong> ${item.AGUA || 'N/A'}</div>
+                    <div class="popup-field"><strong>Layer:</strong> ${item.Layer || 'N/A'}</div>
+                    <div class="popup-field"><strong>Barrio:</strong> ${item.PAR_BARRIO || 'N/A'}</div>
+                    <div class="popup-field"><strong>Área:</strong> ${item.AREA ? item.AREA.toFixed(2) + ' m²' : 'N/A'}</div>
+                    <div class="popup-field"><strong>Longitud:</strong> ${item.Shape_Leng ? item.Shape_Leng.toFixed(2) + ' m' : 'N/A'}</div>
                 </div>
             `;
         }
         
-        function actualizarEstadisticasVias(data) {
-            const total = data.length;
-            const longitud = data.reduce((sum, item) => sum + (item.Shape_Leng || 0), 0);
-            document.getElementById('totalVias').textContent = total;
-            document.getElementById('longitudVias').textContent = longitud.toFixed(0);
-        }
-        
-        function actualizarEstadisticasAlcantarillado(data) {
-            const total = data.length;
-            const longitud = data.reduce((sum, item) => sum + (item.Length || 0), 0);
-            document.getElementById('totalTubos').textContent = total;
-            document.getElementById('longitudAlcantarillado').textContent = longitud.toFixed(0);
-        }
-        
-        function actualizarEstadisticasAgua(data) {
-            const total = data.length;
-            const longitud = data.reduce((sum, item) => sum + (item.Shape_Leng || 0), 0);
-            document.getElementById('totalTubosAgua').textContent = total;
-            document.getElementById('longitudAgua').textContent = longitud.toFixed(0);
-        }
-        
-        function cargarTiposDisponibles(data) {
-            const select = document.getElementById('filterTipo');
-            const tipos = [...new Set(data.map(item => item.Tipo).filter(Boolean))];
-            
-            select.innerHTML = '<option value="">Todos los tipos</option>';
-            tipos.forEach(tipo => {
-                const option = document.createElement('option');
-                option.value = tipo;
-                option.textContent = tipo;
-                select.appendChild(option);
-            });
-        }
-        
-        function cargarLayersDisponibles(data) {
-            const select = document.getElementById('filterLayer');
-            const layers = [...new Set(data.map(item => item.Layer).filter(Boolean))];
-            
-            select.innerHTML = '<option value="">Todos los layers</option>';
-            layers.forEach(layer => {
-                const option = document.createElement('option');
-                option.value = layer;
-                option.textContent = layer;
-                select.appendChild(option);
-            });
-        }
-        
-        function cargarLayersAguaDisponibles(data) {
-            const select = document.getElementById('filterLayerAgua');
-            const layers = [...new Set(data.map(item => item.Layer).filter(Boolean))];
-            
-            select.innerHTML = '<option value="">Todos los layers</option>';
-            layers.forEach(layer => {
-                const option = document.createElement('option');
-                option.value = layer;
-                option.textContent = layer;
-                select.appendChild(option);
-            });
-        }
-        
+        // Funciones para cargar filtros
         function cargarBarriosDisponibles(data) {
             const select = document.getElementById('filterBarrio');
             const barrios = [...new Set(data.map(item => item.PAR_BARRIO).filter(Boolean))];
@@ -824,43 +950,50 @@
             });
         }
         
-        function aplicarFiltrosVias() {
+        // Funciones para aplicar filtros
+        function aplicarFiltrosPredios() {
             const filtros = {
-                nombre: document.getElementById('searchNombre').value.trim(),
-                tipo: document.getElementById('filterTipo').value
+                id: document.getElementById('searchPredio').value.trim(),
+                tipo: document.getElementById('filterTipoPredio').value
             };
-            cargarVias(filtros);
-        }
-        
-        function aplicarFiltrosAlcantarillado() {
-            const filtros = {
-                entity: document.getElementById('searchEntity').value.trim(),
-                layer: document.getElementById('filterLayer').value
-            };
-            cargarAlcantarillado(filtros);
+            
+            if (viewMode === 'all' && allPrediosCache) {
+                // Filtrar en el cache
+                const filtered = allPrediosCache.filter(item => {
+                    const matchesId = !filtros.id || 
+                        (item.id_pred && item.id_pred.toLowerCase().includes(filtros.id.toLowerCase()));
+                    const matchesTipo = !filtros.tipo || 
+                        (item.tipo_pred && item.tipo_pred === filtros.tipo);
+                    return matchesId && matchesTipo;
+                });
+                renderizarPredios(filtered);
+                updateStatus(`Filtrados ${filtered.length} predios`, 'success');
+            } else {
+                // Usar consulta directa
+                cargarPredios(filtros);
+            }
         }
         
         function aplicarFiltrosAgua() {
             const filtros = {
                 agua: document.getElementById('searchAgua').value.trim(),
-                layer: document.getElementById('filterLayerAgua').value,
                 barrio: document.getElementById('filterBarrio').value
             };
             cargarAgua(filtros);
         }
         
         function limpiarFiltros() {
-            document.getElementById('searchNombre').value = '';
-            document.getElementById('filterTipo').value = '';
-            document.getElementById('searchEntity').value = '';
-            document.getElementById('filterLayer').value = '';
+            document.getElementById('searchPredio').value = '';
+            document.getElementById('filterTipoPredio').value = '';
             document.getElementById('searchAgua').value = '';
-            document.getElementById('filterLayerAgua').value = '';
             document.getElementById('filterBarrio').value = '';
-            document.getElementById('infoPanel').style.display = 'none';
             
-            cargarVias();
-            cargarAlcantarillado();
+            if (viewMode === 'adaptive') {
+                loadPrediosAdaptive();
+            } else if (allPrediosCache) {
+                renderizarPredios(allPrediosCache);
+            }
+            
             cargarAgua();
         }
         
@@ -875,14 +1008,57 @@
             statusEl.className = type ? `status ${type}` : 'status';
         }
         
+        // Funciones para manejar el modo de vista
+        function setViewMode(mode) {
+            viewMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(mode === 'adaptive' ? 'modeAdaptive' : 'modeAll').classList.add('active');
+            document.getElementById('currentMode').textContent = mode === 'adaptive' ? 'Adaptivo' : 'Todos';
+            
+            if (mode === 'adaptive') {
+                loadPrediosAdaptive();
+            } else {
+                if (!allPrediosCache) {
+                    cargarTodosPredios();
+                } else {
+                    renderizarPredios(allPrediosCache);
+                }
+            }
+        }
+        
+        // Funciones para mostrar carga
+        function showLoader(show, text = 'Cargando predios...') {
+            const loader = document.getElementById('mapLoading');
+            loader.style.display = show ? 'block' : 'none';
+            if (text) setLoadingText(text);
+        }
+        
+        function setLoadingText(text) {
+            document.getElementById('loadingText').textContent = text;
+        }
+        
+        function showProgress(show) {
+            const container = document.getElementById('progressContainer');
+            container.style.display = show ? 'block' : 'none';
+            if (!show) {
+                updateProgress(0);
+            }
+        }
+        
+        function updateProgress(percent) {
+            const fill = document.getElementById('progressFill');
+            const clampedPercent = Math.min(Math.max(percent, 0), 100);
+            fill.style.width = `${clampedPercent}%`;
+            
+            if (percent > 0) {
+                const loadingText = document.getElementById('loadingText');
+                loadingText.textContent = `Cargando... ${clampedPercent.toFixed(1)}%`;
+            }
+        }
+        
         // Inicialización
         window.onload = function() {
             initMap();
-            setTimeout(() => {
-                cargarVias();
-                cargarAlcantarillado();
-                cargarAgua();
-            }, 100);
         };
     </script>
 </body>
