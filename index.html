@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geovisor de Reportes Ciudadanos</title>
+    <title>Geovisor de Reportes - Servicios Públicos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <style>
         * {
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -31,13 +31,13 @@
         }
 
         .header h1 {
-            font-size: 2.5rem;
+            font-size: 2.5em;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .header p {
-            font-size: 1.1rem;
+            font-size: 1.2em;
             opacity: 0.9;
         }
 
@@ -45,95 +45,15 @@
             display: grid;
             grid-template-columns: 350px 1fr;
             gap: 20px;
-            height: 600px;
+            height: 80vh;
         }
 
         .sidebar {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             overflow-y: auto;
-        }
-
-        .sidebar h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.4rem;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .coord-inputs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            margin-top: 10px;
-        }
-
-        .btn-secondary:hover {
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
         }
 
         .map-container {
@@ -141,7 +61,6 @@
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
         }
 
         #map {
@@ -149,99 +68,193 @@
             width: 100%;
         }
 
-        .status-message {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 10px 15px;
-            border-radius: 8px;
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
             font-weight: 600;
-            z-index: 1000;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
+            color: #555;
         }
 
-        .status-message.show {
-            transform: translateX(0);
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
         }
 
-        .status-message.success {
-            background: #4caf50;
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
         }
 
-        .status-message.error {
-            background: #f44336;
-            color: white;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .coordinates-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        .filters {
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .filter-group select {
+            flex: 1;
         }
 
         .reports-list {
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 10px;
-            background: #f9f9f9;
         }
 
         .report-item {
-            padding: 10px;
-            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: all 0.3s;
         }
 
         .report-item:hover {
-            background: #e3f2fd;
+            background: #e9ecef;
+            transform: translateX(5px);
         }
 
-        .report-item:last-child {
-            border-bottom: none;
-        }
-
-        .report-item strong {
-            color: #667eea;
-        }
-
-        .legend {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f0f0f0;
-            border-radius: 8px;
-        }
-
-        .legend h3 {
-            margin-bottom: 10px;
+        .report-item h4 {
             color: #333;
+            margin-bottom: 5px;
+            font-size: 14px;
         }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
+        .report-item p {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 3px;
         }
 
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid #333;
+        .service-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            margin-top: 5px;
         }
+
+        .service-agua { background: #17a2b8; }
+        .service-alcantarillado { background: #6c757d; }
+        .service-vias { background: #ffc107; color: #333; }
+        .service-basura { background: #28a745; }
+        .service-otro { background: #6f42c1; }
 
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
-                height: auto;
+                grid-template-rows: auto 1fr;
             }
             
             .sidebar {
-                order: 2;
+                max-height: 400px;
             }
             
-            .map-container {
-                height: 400px;
-                order: 1;
+            .header h1 {
+                font-size: 2em;
             }
         }
     </style>
@@ -249,262 +262,431 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🗺️ Geovisor de Reportes Ciudadanos</h1>
-            <p>Reporta problemas de servicios públicos en tu comunidad</p>
+            <h1>🗺️ Geovisor de Reportes</h1>
+            <p>Sistema de Reportes Ciudadanos para Servicios Públicos</p>
         </div>
 
         <div class="main-content">
             <div class="sidebar">
-                <h2>📝 Nuevo Reporte</h2>
-                <form id="reportForm">
+                <div class="form-section">
+                    <h3>📍 Nuevo Reporte</h3>
+                    <div id="statusMessage"></div>
+                    
                     <div class="form-group">
-                        <label for="usuario">👤 Usuario que reporta:</label>
-                        <input type="text" id="usuario" name="usuario" required placeholder="Ingresa tu nombre">
+                        <label for="usuarioReporta">Nombre del Usuario:</label>
+                        <input type="text" id="usuarioReporta" placeholder="Ingrese su nombre">
                     </div>
 
                     <div class="form-group">
-                        <label for="tipoServicio">🔧 Tipo de Servicio:</label>
-                        <select id="tipoServicio" name="tipoServicio" required>
-                            <option value="">Selecciona un servicio</option>
-                            <option value="agua_potable">💧 Agua Potable</option>
-                            <option value="alcantarillado">🚿 Alcantarillado</option>
+                        <label for="tipoServicio">Tipo de Servicio:</label>
+                        <select id="tipoServicio">
+                            <option value="">Seleccione un servicio</option>
+                            <option value="agua">💧 Agua Potable</option>
+                            <option value="alcantarillado">🚰 Alcantarillado</option>
                             <option value="vias">🛣️ Vías</option>
                             <option value="basura">🗑️ Recolección de Basura</option>
+                            <option value="otro">📋 Otro</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>📍 Coordenadas del Problema:</label>
-                        <div class="coord-inputs">
-                            <input type="number" id="coordX" name="coordX" step="any" placeholder="Longitud (X)" required>
-                            <input type="number" id="coordY" name="coordY" step="any" placeholder="Latitud (Y)" required>
-                        </div>
-                        <small style="color: #666; margin-top: 5px; display: block;">
-                            💡 Haz clic en el mapa para obtener las coordenadas
-                        </small>
+                        <label for="descripcion">Descripción del Problema:</label>
+                        <textarea id="descripcion" placeholder="Describa detalladamente el problema encontrado"></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="estado">📊 Estado del Reporte:</label>
-                        <select id="estado" name="estado" required>
+                        <label for="estado">Estado del Reporte:</label>
+                        <select id="estado">
                             <option value="pendiente">⏳ Pendiente</option>
                             <option value="en_proceso">🔄 En Proceso</option>
                             <option value="resuelto">✅ Resuelto</option>
                         </select>
                     </div>
 
-                    <button type="submit" class="btn">📤 Enviar Reporte</button>
-                    <button type="button" class="btn btn-secondary" onclick="clearForm()">🗑️ Limpiar Formulario</button>
-                </form>
+                    <div class="coordinates-display" id="coordsDisplay">
+                        Haga clic en el mapa para seleccionar la ubicación del problema
+                    </div>
 
-                <div class="legend">
-                    <h3>🎨 Leyenda</h3>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #2196f3;"></div>
-                        <span>Agua Potable</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #4caf50;"></div>
-                        <span>Alcantarillado</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #ff9800;"></div>
-                        <span>Vías</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #f44336;"></div>
-                        <span>Recolección de Basura</span>
-                    </div>
+                    <button class="btn btn-primary" id="submitReport">
+                        📤 Enviar Reporte
+                    </button>
+                    
+                    <button class="btn btn-secondary" id="getCurrentLocation">
+                        📍 Usar Mi Ubicación
+                    </button>
                 </div>
 
-                <div style="margin-top: 20px;">
+                <div class="form-section">
+                    <h3>🔍 Filtros</h3>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <select id="filterService">
+                                <option value="">Todos los servicios</option>
+                                <option value="agua">Agua Potable</option>
+                                <option value="alcantarillado">Alcantarillado</option>
+                                <option value="vias">Vías</option>
+                                <option value="basura">Recolección de Basura</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <select id="filterStatus">
+                                <option value="">Todos los estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En Proceso</option>
+                                <option value="resuelto">Resuelto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" id="loadReports">
+                        🔄 Cargar Reportes
+                    </button>
+                </div>
+
+                <div class="form-section">
                     <h3>📋 Reportes Recientes</h3>
                     <div class="reports-list" id="reportsList">
-                        <!-- Los reportes se cargarán aquí -->
+                        <div class="status-message status-info">
+                            Haga clic en "Cargar Reportes" para ver los reportes existentes
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="map-container">
                 <div id="map"></div>
-                <div id="statusMessage" class="status-message"></div>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.38.0/supabase.min.js"></script>
     <script>
         // Configuración del mapa
-        const map = L.map('map').setView([-2.1894, -79.9553], 13); // Centrado en Guayaquil
+        const map = L.map('map').setView([-2.1707, -79.9309], 12); // Guayaquil coordinates
 
         // Agregar capa de OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Colores para diferentes tipos de servicio
-        const serviceColors = {
-            'agua_potable': '#2196f3',
-            'alcantarillado': '#4caf50',
-            'vias': '#ff9800',
-            'basura': '#f44336'
-        };
+        // Variables globales
+        let selectedLocation = null;
+        let currentMarker = null;
+        let reportMarkers = [];
 
-        // Almacenar reportes en memoria
-        let reportes = [];
-        let markersLayer = L.layerGroup().addTo(map);
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://dpxlpyyelqbwudkhdtbw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweGxweXllbHFid3Vka2hkdGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxMjMwNjksImV4cCI6MjA2NTY5OTA2OX0.j8evYP_owzPeJmZ5GgdHnjpg1dYE4DShcI9fYYA8xG8';
+
+        // Inicializar cliente de Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Función para mostrar mensajes de estado
-        function showStatusMessage(message, type = 'success') {
-            const statusDiv = document.getElementById('statusMessage');
-            statusDiv.textContent = message;
-            statusDiv.className = `status-message ${type} show`;
-            
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.getElementById('statusMessage');
+            messageDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
             setTimeout(() => {
-                statusDiv.classList.remove('show');
-            }, 3000);
+                messageDiv.innerHTML = '';
+            }, 5000);
         }
 
-        // Función para limpiar formulario
-        function clearForm() {
-            document.getElementById('reportForm').reset();
-        }
-
-        // Función para actualizar la lista de reportes
-        function updateReportsList() {
-            const reportsList = document.getElementById('reportsList');
-            reportsList.innerHTML = '';
-            
-            if (reportes.length === 0) {
-                reportsList.innerHTML = '<p style="text-align: center; color: #666;">No hay reportes aún</p>';
-                return;
-            }
-
-            reportes.forEach((reporte, index) => {
-                const reportItem = document.createElement('div');
-                reportItem.className = 'report-item';
-                reportItem.innerHTML = `
-                    <strong>${reporte.usuario}</strong><br>
-                    <small>${reporte.tipoServicio.replace('_', ' ')} - ${reporte.estado}</small>
-                `;
-                reportItem.onclick = () => {
-                    map.setView([reporte.coordY, reporte.coordX], 16);
-                };
-                reportsList.appendChild(reportItem);
-            });
-        }
-
-        // Función para agregar marcadores al mapa
-        function addMarkerToMap(reporte) {
-            const color = serviceColors[reporte.tipoServicio] || '#666';
-            
-            const marker = L.circleMarker([reporte.coordY, reporte.coordX], {
-                color: '#fff',
-                weight: 2,
-                fillColor: color,
-                fillOpacity: 0.8,
-                radius: 8
-            }).addTo(markersLayer);
-
-            // Popup con información del reporte
-            const popupContent = `
-                <div style="min-width: 200px;">
-                    <h4 style="margin: 0 0 10px 0; color: ${color};">
-                        ${reporte.tipoServicio.replace('_', ' ').toUpperCase()}
-                    </h4>
-                    <p><strong>Usuario:</strong> ${reporte.usuario}</p>
-                    <p><strong>Estado:</strong> ${reporte.estado}</p>
-                    <p><strong>Coordenadas:</strong> ${reporte.coordY.toFixed(6)}, ${reporte.coordX.toFixed(6)}</p>
-                </div>
+        // Función para actualizar las coordenadas mostradas
+        function updateCoordinatesDisplay(lat, lng) {
+            document.getElementById('coordsDisplay').innerHTML = `
+                <strong>Coordenadas seleccionadas:</strong><br>
+                Latitud: ${lat.toFixed(6)}<br>
+                Longitud: ${lng.toFixed(6)}
             `;
-            
-            marker.bindPopup(popupContent);
         }
 
-        // Evento click en el mapa para obtener coordenadas
+        // Manejar clics en el mapa
         map.on('click', function(e) {
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
+            selectedLocation = e.latlng;
             
-            document.getElementById('coordX').value = lng.toFixed(6);
-            document.getElementById('coordY').value = lat.toFixed(6);
+            // Remover marcador anterior
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+            }
             
-            showStatusMessage(`Coordenadas capturadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 'success');
+            // Agregar nuevo marcador
+            currentMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '📍',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 30]
+                })
+            }).addTo(map);
+            
+            updateCoordinatesDisplay(e.latlng.lat, e.latlng.lng);
         });
 
-        // Manejo del formulario
-        document.getElementById('reportForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const nuevoReporte = {
-                usuario: formData.get('usuario'),
-                tipoServicio: formData.get('tipoServicio'),
-                coordX: parseFloat(formData.get('coordX')),
-                coordY: parseFloat(formData.get('coordY')),
-                estado: formData.get('estado')
-            };
+        // Obtener ubicación actual
+        document.getElementById('getCurrentLocation').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    selectedLocation = { lat, lng };
+                    
+                    // Remover marcador anterior
+                    if (currentMarker) {
+                        map.removeLayer(currentMarker);
+                    }
+                    
+                    // Agregar marcador en ubicación actual
+                    currentMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'custom-marker',
+                            html: '📍',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 30]
+                        })
+                    }).addTo(map);
+                    
+                    // Centrar mapa en la ubicación
+                    map.setView([lat, lng], 16);
+                    
+                    updateCoordinatesDisplay(lat, lng);
+                    showMessage('📍 Ubicación actual obtenida correctamente', 'success');
+                    
+                }, function(error) {
+                    showMessage('❌ Error al obtener la ubicación: ' + error.message, 'error');
+                });
+            } else {
+                showMessage('❌ La geolocalización no es soportada por este navegador', 'error');
+            }
+        });
 
-            // Validar coordenadas
-            if (isNaN(nuevoReporte.coordX) || isNaN(nuevoReporte.coordY)) {
-                showStatusMessage('Por favor ingresa coordenadas válidas', 'error');
+        // Función para enviar reporte a Supabase
+        document.getElementById('submitReport').addEventListener('click', async function() {
+            const usuarioReporta = document.getElementById('usuarioReporta').value;
+            const tipoServicio = document.getElementById('tipoServicio').value;
+            const descripcion = document.getElementById('descripcion').value;
+            const estado = document.getElementById('estado').value;
+            
+            // Validaciones
+            if (!usuarioReporta.trim()) {
+                showMessage('❌ Por favor ingrese su nombre', 'error');
+                return;
+            }
+            
+            if (!tipoServicio) {
+                showMessage('❌ Por favor seleccione un tipo de servicio', 'error');
+                return;
+            }
+            
+            if (!descripcion.trim()) {
+                showMessage('❌ Por favor ingrese una descripción del problema', 'error');
+                return;
+            }
+            
+            if (!selectedLocation) {
+                showMessage('❌ Por favor seleccione una ubicación en el mapa', 'error');
                 return;
             }
 
-            // Simular envío a Supabase (aquí integrarías con tu API)
-            console.log('Enviando reporte a Supabase:', nuevoReporte);
+            // Mostrar mensaje de carga
+            showMessage('⏳ Enviando reporte...', 'info');
             
-            // Agregar a la lista local
-            reportes.push(nuevoReporte);
-            
-            // Agregar marcador al mapa
-            addMarkerToMap(nuevoReporte);
-            
-            // Actualizar lista de reportes
-            updateReportsList();
-            
-            // Limpiar formulario
-            clearForm();
-            
-            showStatusMessage('¡Reporte enviado exitosamente!', 'success');
+            try {
+                // Preparar datos para Supabase
+                const reportData = {
+                    usuario_reporta: usuarioReporta,
+                    tipo_servicio: tipoServicio,
+                    descripcion: descripcion,
+                    estado: estado,
+                    geom: `POINT(${selectedLocation.lng} ${selectedLocation.lat})`,
+                    x: selectedLocation.lng,
+                    y: selectedLocation.lat
+                };
+
+                // Enviar a Supabase
+                const { data, error } = await supabase
+                    .from('reporte_usuarios')
+                    .insert([reportData]);
+
+                if (error) {
+                    throw error;
+                }
+
+                showMessage('✅ Reporte enviado correctamente. Gracias por su colaboración.', 'success');
+                
+                // Limpiar formulario
+                document.getElementById('usuarioReporta').value = '';
+                document.getElementById('tipoServicio').value = '';
+                document.getElementById('descripcion').value = '';
+                document.getElementById('estado').value = 'pendiente';
+                
+                // Remover marcador
+                if (currentMarker) {
+                    map.removeLayer(currentMarker);
+                    currentMarker = null;
+                }
+                
+                selectedLocation = null;
+                document.getElementById('coordsDisplay').innerHTML = 'Haga clic en el mapa para seleccionar la ubicación del problema';
+                
+                // Agregar marcador de reporte enviado
+                const reportMarker = L.marker([reportData.y, reportData.x], {
+                    icon: L.divIcon({
+                        className: 'report-marker',
+                        html: getServiceIcon(tipoServicio),
+                        iconSize: [25, 25],
+                        iconAnchor: [12, 25]
+                    })
+                }).addTo(map);
+                
+                reportMarker.bindPopup(`
+                    <strong>${usuarioReporta}</strong><br>
+                    <strong>Servicio:</strong> ${getServiceName(tipoServicio)}<br>
+                    <strong>Estado:</strong> ${getStatusName(estado)}<br>
+                    <strong>Descripción:</strong> ${descripcion}
+                `);
+                
+                reportMarkers.push(reportMarker);
+                
+            } catch (error) {
+                console.error('Error al enviar reporte:', error);
+                showMessage('❌ Error al enviar el reporte: ' + error.message, 'error');
+            }
         });
 
-        // Inicializar la lista de reportes
-        updateReportsList();
+        // Función para cargar reportes desde Supabase
+        document.getElementById('loadReports').addEventListener('click', async function() {
+            const filterService = document.getElementById('filterService').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            
+            showMessage('⏳ Cargando reportes...', 'info');
+            
+            try {
+                // Construir consulta con filtros
+                let query = supabase
+                    .from('reporte_usuarios')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                // Aplicar filtros
+                if (filterService) {
+                    query = query.eq('tipo_servicio', filterService);
+                }
+                if (filterStatus) {
+                    query = query.eq('estado', filterStatus);
+                }
+                
+                const { data: reports, error } = await query;
 
-        // Datos de ejemplo para demostración
-        const reportesEjemplo = [
-            {
-                usuario: "Juan Pérez",
-                tipoServicio: "agua_potable",
-                coordX: -79.9553,
-                coordY: -2.1894,
-                estado: "pendiente"
-            },
-            {
-                usuario: "María González",
-                tipoServicio: "vias",
-                coordX: -79.9500,
-                coordY: -2.1850,
-                estado: "en_proceso"
-            },
-            {
-                usuario: "Carlos Rodríguez",
-                tipoServicio: "basura",
-                coordX: -79.9600,
-                coordY: -2.1900,
-                estado: "resuelto"
+                if (error) {
+                    throw error;
+                }
+                
+                // Mostrar reportes en la lista
+                const reportsList = document.getElementById('reportsList');
+                if (!reports || reports.length === 0) {
+                    reportsList.innerHTML = '<div class="status-message status-info">No se encontraron reportes con los filtros seleccionados</div>';
+                    return;
+                }
+                
+                reportsList.innerHTML = '';
+                reports.forEach(report => {
+                    const reportItem = document.createElement('div');
+                    reportItem.className = 'report-item';
+                    
+                    // Formatear fecha si está disponible
+                    const dateStr = report.created_at ? new Date(report.created_at).toLocaleDateString() : 'Sin fecha';
+                    
+                    reportItem.innerHTML = `
+                        <h4>${report.usuario_reporta}</h4>
+                        <p><strong>Fecha:</strong> ${dateStr}</p>
+                        <p><strong>Servicio:</strong> ${getServiceName(report.tipo_servicio)}</p>
+                        <p><strong>Estado:</strong> ${getStatusName(report.estado)}</p>
+                        <p><strong>Descripción:</strong> ${report.descripcion}</p>
+                        <span class="service-tag service-${report.tipo_servicio}">${getServiceName(report.tipo_servicio)}</span>
+                    `;
+                    
+                    reportItem.addEventListener('click', function() {
+                        if (report.y && report.x) {
+                            map.setView([report.y, report.x], 16);
+                        }
+                    });
+                    
+                    reportsList.appendChild(reportItem);
+                });
+                
+                // Limpiar marcadores anteriores
+                reportMarkers.forEach(marker => map.removeLayer(marker));
+                reportMarkers = [];
+                
+                // Agregar marcadores al mapa
+                reports.forEach(report => {
+                    if (report.y && report.x) {
+                        const marker = L.marker([report.y, report.x], {
+                            icon: L.divIcon({
+                                className: 'report-marker',
+                                html: getServiceIcon(report.tipo_servicio),
+                                iconSize: [25, 25],
+                                iconAnchor: [12, 25]
+                            })
+                        }).addTo(map);
+                        
+                        const dateStr = report.created_at ? new Date(report.created_at).toLocaleDateString() : 'Sin fecha';
+                        
+                        marker.bindPopup(`
+                            <strong>${report.usuario_reporta}</strong><br>
+                            <strong>Fecha:</strong> ${dateStr}<br>
+                            <strong>Servicio:</strong> ${getServiceName(report.tipo_servicio)}<br>
+                            <strong>Estado:</strong> ${getStatusName(report.estado)}<br>
+                            <strong>Descripción:</strong> ${report.descripcion}
+                        `);
+                        
+                        reportMarkers.push(marker);
+                    }
+                });
+                
+                showMessage(`📋 Se cargaron ${reports.length} reportes`, 'success');
+                
+            } catch (error) {
+                console.error('Error al cargar reportes:', error);
+                showMessage('❌ Error al cargar reportes: ' + error.message, 'error');
             }
-        ];
+        });
 
-        // Cargar reportes de ejemplo
-        setTimeout(() => {
-            reportesEjemplo.forEach(reporte => {
-                reportes.push(reporte);
-                addMarkerToMap(reporte);
-            });
-            updateReportsList();
-        }, 1000);
+        // Funciones auxiliares
+        function getServiceName(service) {
+            const names = {
+                'agua': 'Agua Potable',
+                'alcantarillado': 'Alcantarillado',
+                'vias': 'Vías',
+                'basura': 'Recolección de Basura',
+                'otro': 'Otro'
+            };
+            return names[service] || service;
+        }
+
+        function getStatusName(status) {
+            const names = {
+                'pendiente': 'Pendiente',
+                'en_proceso': 'En Proceso',
+                'resuelto': 'Resuelto'
+            };
+            return names[status] || status;
+        }
+
+        function getServiceIcon(service) {
+            const icons = {
+                'agua': '💧',
+                'alcantarillado': '🚰',
+                'vias': '🛣️',
+                'basura': '🗑️',
+                'otro': '📋'
+            };
+            return icons[service] || '📍';
+        }
+
+        // Mensaje inicial
+        showMessage('🗺️ Bienvenido al Geovisor de Reportes. Haga clic en el mapa para comenzar.', 'info');
     </script>
 </body>
 </html>
