@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geovisor de Reportes - Servicios Públicos</title>
+    <title>Geovisor - Reportes de Usuarios</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <style>
         * {
@@ -19,48 +19,40 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
 
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .header h1 {
+            color: white;
             font-size: 2.5em;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 20px;
-            height: 80vh;
-        }
-
-        .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            overflow-y: auto;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1em;
         }
 
         .map-container {
-            background: white;
-            border-radius: 15px;
+            position: relative;
+            height: 500px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
         }
 
         #map {
@@ -68,193 +60,146 @@
             width: 100%;
         }
 
-        .form-section {
-            margin-bottom: 30px;
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .form-section h3 {
-            color: #333;
+        .status {
+            color: white;
+            font-size: 1.1em;
             margin-bottom: 15px;
-            font-size: 1.3em;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 5px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .form-container {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .form-container.active {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            color: #333;
             font-weight: 600;
-            color: #555;
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 12px;
-            border: 2px solid #ddd;
+            border: 2px solid #e0e0e0;
             border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
         .btn {
-            width: 100%;
-            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
             border: none;
-            border-radius: 8px;
+            padding: 15px 30px;
+            border-radius: 25px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .btn-primary:hover {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
 
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #ddd;
+        .btn:active {
+            transform: translateY(0);
         }
 
-        .btn-secondary:hover {
-            background: #e9ecef;
+        .btn-cancel {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            margin-left: 10px;
         }
 
-        .coordinates-display {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-family: monospace;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .status-message {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .status-info {
-            background: #cce7ff;
-            color: #004085;
-            border: 1px solid #b8daff;
-        }
-
-        .filters {
-            margin-bottom: 20px;
-        }
-
-        .filter-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .filter-group select {
-            flex: 1;
-        }
-
-        .reports-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .report-item {
-            background: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .report-item:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
-        }
-
-        .report-item h4 {
-            color: #333;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .report-item p {
-            color: #666;
-            font-size: 12px;
-            margin-bottom: 3px;
-        }
-
-        .service-tag {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
+        .success-message {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
             color: white;
-            margin-top: 5px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
         }
 
-        .service-agua { background: #17a2b8; }
-        .service-alcantarillado { background: #6c757d; }
-        .service-vias { background: #ffc107; color: #333; }
-        .service-basura { background: #28a745; }
-        .service-otro { background: #6f42c1; }
+        .success-message.show {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .coordinates {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #333;
+        }
 
         @media (max-width: 768px) {
-            .main-content {
+            .form-row {
                 grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-            }
-            
-            .sidebar {
-                max-height: 400px;
             }
             
             .header h1 {
                 font-size: 2em;
+            }
+            
+            .container {
+                padding: 10px;
             }
         }
     </style>
@@ -263,430 +208,307 @@
     <div class="container">
         <div class="header">
             <h1>🗺️ Geovisor de Reportes</h1>
-            <p>Sistema de Reportes Ciudadanos para Servicios Públicos</p>
+            <p>Haz clic en el mapa para reportar problemas en el servicio</p>
         </div>
 
-        <div class="main-content">
-            <div class="sidebar">
-                <div class="form-section">
-                    <h3>📍 Nuevo Reporte</h3>
-                    <div id="statusMessage"></div>
-                    
-                    <div class="form-group">
-                        <label for="usuarioReporta">Nombre del Usuario:</label>
-                        <input type="text" id="usuarioReporta" placeholder="Ingrese su nombre">
-                    </div>
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
 
-                    <div class="form-group">
-                        <label for="tipoServicio">Tipo de Servicio:</label>
-                        <select id="tipoServicio">
-                            <option value="">Seleccione un servicio</option>
-                            <option value="agua">💧 Agua Potable</option>
-                            <option value="alcantarillado">🚰 Alcantarillado</option>
-                            <option value="vias">🛣️ Vías</option>
-                            <option value="basura">🗑️ Recolección de Basura</option>
-                            <option value="otro">📋 Otro</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="descripcion">Descripción del Problema:</label>
-                        <textarea id="descripcion" placeholder="Describa detalladamente el problema encontrado"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="estado">Estado del Reporte:</label>
-                        <select id="estado">
-                            <option value="pendiente">⏳ Pendiente</option>
-                            <option value="en_proceso">🔄 En Proceso</option>
-                            <option value="resuelto">✅ Resuelto</option>
-                        </select>
-                    </div>
-
-                    <div class="coordinates-display" id="coordsDisplay">
-                        Haga clic en el mapa para seleccionar la ubicación del problema
-                    </div>
-
-                    <button class="btn btn-primary" id="submitReport">
-                        📤 Enviar Reporte
-                    </button>
-                    
-                    <button class="btn btn-secondary" id="getCurrentLocation">
-                        📍 Usar Mi Ubicación
-                    </button>
-                </div>
-
-                <div class="form-section">
-                    <h3>🔍 Filtros</h3>
-                    <div class="filters">
-                        <div class="filter-group">
-                            <select id="filterService">
-                                <option value="">Todos los servicios</option>
-                                <option value="agua">Agua Potable</option>
-                                <option value="alcantarillado">Alcantarillado</option>
-                                <option value="vias">Vías</option>
-                                <option value="basura">Recolección de Basura</option>
-                                <option value="otro">Otro</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <select id="filterStatus">
-                                <option value="">Todos los estados</option>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="en_proceso">En Proceso</option>
-                                <option value="resuelto">Resuelto</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn btn-secondary" id="loadReports">
-                        🔄 Cargar Reportes
-                    </button>
-                </div>
-
-                <div class="form-section">
-                    <h3>📋 Reportes Recientes</h3>
-                    <div class="reports-list" id="reportsList">
-                        <div class="status-message status-info">
-                            Haga clic en "Cargar Reportes" para ver los reportes existentes
-                        </div>
-                    </div>
-                </div>
+        <div class="controls">
+            <div class="status" id="status">
+                📍 Haz clic en el mapa para reportar un problema o usa tu ubicación actual
             </div>
-
-            <div class="map-container">
-                <div id="map"></div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button class="btn" id="useLocationBtn">
+                    📍 Usar mi ubicación actual
+                </button>
+            </div>
+            
+            <div class="form-container" id="formContainer">
+                <h3>📋 Reportar Problema</h3>
+                
+                <div class="coordinates" id="coordinates"></div>
+                
+                <form id="reportForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="usuario">👤 Usuario que reporta:</label>
+                            <input type="text" id="usuario" required placeholder="Ingresa tu nombre">
+                        </div>
+                        <div class="form-group">
+                            <label for="tipoServicio">🔧 Tipo de servicio:</label>
+                            <select id="tipoServicio" required>
+                                <option value="">Selecciona un servicio</option>
+                                <option value="Agua potable">💧 Agua potable</option>
+                                <option value="Electricidad">⚡ Electricidad</option>
+                                <option value="Internet">🌐 Internet</option>
+                                <option value="Teléfono">📞 Teléfono</option>
+                                <option value="Alcantarillado">🚰 Alcantarillado</option>
+                                <option value="Gas">🔥 Gas</option>
+                                <option value="Recolección de basura">🗑️ Recolección de basura</option>
+                                <option value="Alumbrado público">💡 Alumbrado público</option>
+                                <option value="Vías y calles">🛣️ Vías y calles</option>
+                                <option value="Otro">❓ Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estado">📝 Estado del problema:</label>
+                        <select id="estado" required>
+                            <option value="">Selecciona el estado</option>
+                            <option value="Reportado">🆕 Reportado</option>
+                            <option value="En proceso">⏳ En proceso</option>
+                            <option value="Resuelto">✅ Resuelto</option>
+                            <option value="Crítico">🚨 Crítico</option>
+                        </select>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 25px;">
+                        <button type="submit" class="btn">📤 Enviar Reporte</button>
+                        <button type="button" class="btn btn-cancel" id="cancelBtn">❌ Cancelar</button>
+                    </div>
+                </form>
+                
+                <div class="success-message" id="successMessage">
+                    ✅ ¡Reporte enviado exitosamente!
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.38.0/supabase.min.js"></script>
     <script>
-        // Configuración del mapa
-        const map = L.map('map').setView([-2.1707, -79.9309], 12); // Guayaquil coordinates
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://dpxlpyyelqbwudkhdtbw.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweGxweXllbHFid3Vka2hkdGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxMjMwNjksImV4cCI6MjA2NTY5OTA2OX0.j8evYP_owzPeJmZ5GgdHnjpg1dYE4DShcI9fYYA8xG8';
 
-        // Agregar capa de OpenStreetMap
+        // Inicializar el mapa centrado en El Pangui
+        let map = L.map('map').setView([-3.6127, -78.6047], 14); // El Pangui
+
+        // Agregar capa de mapa
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
         // Variables globales
-        let selectedLocation = null;
+        let selectedPoint = null;
         let currentMarker = null;
-        let reportMarkers = [];
+        let userLocationMarker = null;
+        let formContainer = document.getElementById('formContainer');
+        let status = document.getElementById('status');
 
-        // Configuración de Supabase
-        const SUPABASE_URL = 'https://dpxlpyyelqbwudkhdtbw.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweGxweXllbHFid3Vka2hkdGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxMjMwNjksImV4cCI6MjA2NTY5OTA2OX0.j8evYP_owzPeJmZ5GgdHnjpg1dYE4DShcI9fYYA8xG8';
-
-        // Inicializar cliente de Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Función para mostrar mensajes de estado
-        function showMessage(message, type = 'info') {
-            const messageDiv = document.getElementById('statusMessage');
-            messageDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 5000);
-        }
-
-        // Función para actualizar las coordenadas mostradas
-        function updateCoordinatesDisplay(lat, lng) {
-            document.getElementById('coordsDisplay').innerHTML = `
-                <strong>Coordenadas seleccionadas:</strong><br>
-                Latitud: ${lat.toFixed(6)}<br>
-                Longitud: ${lng.toFixed(6)}
-            `;
+        // Función para obtener ubicación del usuario
+        function getUserLocation() {
+            if ("geolocation" in navigator) {
+                status.textContent = '📍 Obteniendo tu ubicación...';
+                status.style.background = 'rgba(255, 193, 7, 0.3)';
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Centrar mapa en la ubicación del usuario
+                        map.setView([lat, lng], 17);
+                        
+                        // Remover marcadores anteriores
+                        if (currentMarker) {
+                            map.removeLayer(currentMarker);
+                        }
+                        if (userLocationMarker) {
+                            map.removeLayer(userLocationMarker);
+                        }
+                        
+                        // Crear marcador especial para ubicación del usuario
+                        userLocationMarker = L.marker([lat, lng], {
+                            icon: L.divIcon({
+                                html: '🎯',
+                                iconSize: [30, 30],
+                                className: 'user-location-marker'
+                            })
+                        }).addTo(map);
+                        
+                        // Guardar punto seleccionado
+                        selectedPoint = { lat, lng };
+                        
+                        // Mostrar formulario
+                        showForm(lat, lng, true);
+                    },
+                    function(error) {
+                        let errorMessage = '';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = '❌ Acceso a ubicación denegado. Haz clic en el mapa manualmente.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = '❌ Ubicación no disponible. Haz clic en el mapa manualmente.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = '❌ Tiempo de espera agotado. Haz clic en el mapa manualmente.';
+                                break;
+                        }
+                        status.textContent = errorMessage;
+                        status.style.background = 'rgba(220, 53, 69, 0.3)';
+                        
+                        setTimeout(() => {
+                            status.textContent = '📍 Haz clic en el mapa para reportar un problema o usa tu ubicación actual';
+                            status.style.background = 'rgba(255, 255, 255, 0.1)';
+                        }, 3000);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000
+                    }
+                );
+            } else {
+                status.textContent = '❌ Tu navegador no soporta geolocalización. Haz clic en el mapa manualmente.';
+                status.style.background = 'rgba(220, 53, 69, 0.3)';
+            }
         }
 
         // Manejar clics en el mapa
         map.on('click', function(e) {
-            selectedLocation = e.latlng;
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
             
-            // Remover marcador anterior
+            // Remover marcador anterior si existe
             if (currentMarker) {
                 map.removeLayer(currentMarker);
             }
             
-            // Agregar nuevo marcador
-            currentMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+            // Crear nuevo marcador
+            currentMarker = L.marker([lat, lng], {
                 icon: L.divIcon({
-                    className: 'custom-marker',
                     html: '📍',
                     iconSize: [30, 30],
-                    iconAnchor: [15, 30]
+                    className: 'custom-marker'
                 })
             }).addTo(map);
             
-            updateCoordinatesDisplay(e.latlng.lat, e.latlng.lng);
+            // Guardar punto seleccionado
+            selectedPoint = { lat, lng };
+            
+            // Mostrar formulario
+            showForm(lat, lng);
         });
 
-        // Obtener ubicación actual
-        document.getElementById('getCurrentLocation').addEventListener('click', function() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    
-                    selectedLocation = { lat, lng };
-                    
-                    // Remover marcador anterior
-                    if (currentMarker) {
-                        map.removeLayer(currentMarker);
-                    }
-                    
-                    // Agregar marcador en ubicación actual
-                    currentMarker = L.marker([lat, lng], {
-                        icon: L.divIcon({
-                            className: 'custom-marker',
-                            html: '📍',
-                            iconSize: [30, 30],
-                            iconAnchor: [15, 30]
-                        })
-                    }).addTo(map);
-                    
-                    // Centrar mapa en la ubicación
-                    map.setView([lat, lng], 16);
-                    
-                    updateCoordinatesDisplay(lat, lng);
-                    showMessage('📍 Ubicación actual obtenida correctamente', 'success');
-                    
-                }, function(error) {
-                    showMessage('❌ Error al obtener la ubicación: ' + error.message, 'error');
-                });
+        function showForm(lat, lng, isUserLocation = false) {
+            const locationText = isUserLocation ? '🎯 Tu ubicación actual' : '📍 Ubicación seleccionada';
+            
+            document.getElementById('coordinates').innerHTML = `
+                <strong>${locationText}:</strong><br>
+                Latitud: ${lat.toFixed(6)}<br>
+                Longitud: ${lng.toFixed(6)}
+            `;
+            
+            formContainer.classList.add('active');
+            
+            if (isUserLocation) {
+                status.textContent = '🎯 ¡Perfecto! Tu ubicación ha sido detectada. Completa el formulario.';
+                status.style.background = 'rgba(40, 167, 69, 0.3)';
             } else {
-                showMessage('❌ La geolocalización no es soportada por este navegador', 'error');
+                status.textContent = '📝 Completa el formulario para reportar el problema';
+                status.style.background = 'rgba(255, 193, 7, 0.3)';
             }
-        });
+        }
 
-        // Función para enviar reporte a Supabase
-        document.getElementById('submitReport').addEventListener('click', async function() {
-            const usuarioReporta = document.getElementById('usuarioReporta').value;
-            const tipoServicio = document.getElementById('tipoServicio').value;
-            const descripcion = document.getElementById('descripcion').value;
-            const estado = document.getElementById('estado').value;
+        function hideForm() {
+            formContainer.classList.remove('active');
+            status.textContent = '📍 Haz clic en el mapa para reportar un problema o usa tu ubicación actual';
+            status.style.background = 'rgba(255, 255, 255, 0.1)';
             
-            // Validaciones
-            if (!usuarioReporta.trim()) {
-                showMessage('❌ Por favor ingrese su nombre', 'error');
-                return;
+            // Limpiar formulario
+            document.getElementById('reportForm').reset();
+            
+            // Remover marcadores
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+                currentMarker = null;
+            }
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+                userLocationMarker = null;
             }
             
-            if (!tipoServicio) {
-                showMessage('❌ Por favor seleccione un tipo de servicio', 'error');
-                return;
-            }
-            
-            if (!descripcion.trim()) {
-                showMessage('❌ Por favor ingrese una descripción del problema', 'error');
-                return;
-            }
-            
-            if (!selectedLocation) {
-                showMessage('❌ Por favor seleccione una ubicación en el mapa', 'error');
-                return;
-            }
+            selectedPoint = null;
+        }
 
-            // Mostrar mensaje de carga
-            showMessage('⏳ Enviando reporte...', 'info');
+        // Manejar envío del formulario
+        document.getElementById('reportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!selectedPoint) {
+                alert('Por favor selecciona un punto en el mapa');
+                return;
+            }
+            
+            const formData = {
+                usuario_reporta: document.getElementById('usuario').value,
+                tipo_servicio: document.getElementById('tipoServicio').value,
+                x: selectedPoint.lng.toString(),
+                y: selectedPoint.lat.toString(),
+                estado: document.getElementById('estado').value,
+                geom: `POINT(${selectedPoint.lng} ${selectedPoint.lat})`
+            };
             
             try {
-                // Preparar datos para Supabase
-                const reportData = {
-                    usuario_reporta: usuarioReporta,
-                    tipo_servicio: tipoServicio,
-                    descripcion: descripcion,
-                    estado: estado,
-                    geom: `POINT(${selectedLocation.lng} ${selectedLocation.lat})`,
-                    x: selectedLocation.lng,
-                    y: selectedLocation.lat
-                };
-
-                // Enviar a Supabase
-                const { data, error } = await supabase
-                    .from('reporte_usuarios')
-                    .insert([reportData]);
-
-                if (error) {
-                    throw error;
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/reporte_usuarios`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('successMessage').classList.add('show');
+                    setTimeout(() => {
+                        document.getElementById('successMessage').classList.remove('show');
+                        hideForm();
+                    }, 2000);
+                } else {
+                    const error = await response.text();
+                    alert('Error al enviar el reporte: ' + error);
                 }
-
-                showMessage('✅ Reporte enviado correctamente. Gracias por su colaboración.', 'success');
-                
-                // Limpiar formulario
-                document.getElementById('usuarioReporta').value = '';
-                document.getElementById('tipoServicio').value = '';
-                document.getElementById('descripcion').value = '';
-                document.getElementById('estado').value = 'pendiente';
-                
-                // Remover marcador
-                if (currentMarker) {
-                    map.removeLayer(currentMarker);
-                    currentMarker = null;
-                }
-                
-                selectedLocation = null;
-                document.getElementById('coordsDisplay').innerHTML = 'Haga clic en el mapa para seleccionar la ubicación del problema';
-                
-                // Agregar marcador de reporte enviado
-                const reportMarker = L.marker([reportData.y, reportData.x], {
-                    icon: L.divIcon({
-                        className: 'report-marker',
-                        html: getServiceIcon(tipoServicio),
-                        iconSize: [25, 25],
-                        iconAnchor: [12, 25]
-                    })
-                }).addTo(map);
-                
-                reportMarker.bindPopup(`
-                    <strong>${usuarioReporta}</strong><br>
-                    <strong>Servicio:</strong> ${getServiceName(tipoServicio)}<br>
-                    <strong>Estado:</strong> ${getStatusName(estado)}<br>
-                    <strong>Descripción:</strong> ${descripcion}
-                `);
-                
-                reportMarkers.push(reportMarker);
-                
             } catch (error) {
-                console.error('Error al enviar reporte:', error);
-                showMessage('❌ Error al enviar el reporte: ' + error.message, 'error');
+                alert('Error de conexión: ' + error.message);
             }
         });
 
-        // Función para cargar reportes desde Supabase
-        document.getElementById('loadReports').addEventListener('click', async function() {
-            const filterService = document.getElementById('filterService').value;
-            const filterStatus = document.getElementById('filterStatus').value;
-            
-            showMessage('⏳ Cargando reportes...', 'info');
-            
-            try {
-                // Construir consulta con filtros
-                let query = supabase
-                    .from('reporte_usuarios')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                // Aplicar filtros
-                if (filterService) {
-                    query = query.eq('tipo_servicio', filterService);
-                }
-                if (filterStatus) {
-                    query = query.eq('estado', filterStatus);
-                }
-                
-                const { data: reports, error } = await query;
+        // Manejar cancelación
+        document.getElementById('cancelBtn').addEventListener('click', hideForm);
 
-                if (error) {
-                    throw error;
-                }
-                
-                // Mostrar reportes en la lista
-                const reportsList = document.getElementById('reportsList');
-                if (!reports || reports.length === 0) {
-                    reportsList.innerHTML = '<div class="status-message status-info">No se encontraron reportes con los filtros seleccionados</div>';
-                    return;
-                }
-                
-                reportsList.innerHTML = '';
-                reports.forEach(report => {
-                    const reportItem = document.createElement('div');
-                    reportItem.className = 'report-item';
-                    
-                    // Formatear fecha si está disponible
-                    const dateStr = report.created_at ? new Date(report.created_at).toLocaleDateString() : 'Sin fecha';
-                    
-                    reportItem.innerHTML = `
-                        <h4>${report.usuario_reporta}</h4>
-                        <p><strong>Fecha:</strong> ${dateStr}</p>
-                        <p><strong>Servicio:</strong> ${getServiceName(report.tipo_servicio)}</p>
-                        <p><strong>Estado:</strong> ${getStatusName(report.estado)}</p>
-                        <p><strong>Descripción:</strong> ${report.descripcion}</p>
-                        <span class="service-tag service-${report.tipo_servicio}">${getServiceName(report.tipo_servicio)}</span>
-                    `;
-                    
-                    reportItem.addEventListener('click', function() {
-                        if (report.y && report.x) {
-                            map.setView([report.y, report.x], 16);
-                        }
-                    });
-                    
-                    reportsList.appendChild(reportItem);
-                });
-                
-                // Limpiar marcadores anteriores
-                reportMarkers.forEach(marker => map.removeLayer(marker));
-                reportMarkers = [];
-                
-                // Agregar marcadores al mapa
-                reports.forEach(report => {
-                    if (report.y && report.x) {
-                        const marker = L.marker([report.y, report.x], {
-                            icon: L.divIcon({
-                                className: 'report-marker',
-                                html: getServiceIcon(report.tipo_servicio),
-                                iconSize: [25, 25],
-                                iconAnchor: [12, 25]
-                            })
-                        }).addTo(map);
-                        
-                        const dateStr = report.created_at ? new Date(report.created_at).toLocaleDateString() : 'Sin fecha';
-                        
-                        marker.bindPopup(`
-                            <strong>${report.usuario_reporta}</strong><br>
-                            <strong>Fecha:</strong> ${dateStr}<br>
-                            <strong>Servicio:</strong> ${getServiceName(report.tipo_servicio)}<br>
-                            <strong>Estado:</strong> ${getStatusName(report.estado)}<br>
-                            <strong>Descripción:</strong> ${report.descripcion}
-                        `);
-                        
-                        reportMarkers.push(marker);
-                    }
-                });
-                
-                showMessage(`📋 Se cargaron ${reports.length} reportes`, 'success');
-                
-            } catch (error) {
-                console.error('Error al cargar reportes:', error);
-                showMessage('❌ Error al cargar reportes: ' + error.message, 'error');
+        // Agregar estilo para el marcador personalizado
+        const style = document.createElement('style');
+        style.textContent = `
+            .custom-marker {
+                background: none !important;
+                border: none !important;
+                font-size: 24px;
+                text-align: center;
+                line-height: 30px;
+                animation: bounce 1s infinite;
             }
-        });
-
-        // Funciones auxiliares
-        function getServiceName(service) {
-            const names = {
-                'agua': 'Agua Potable',
-                'alcantarillado': 'Alcantarillado',
-                'vias': 'Vías',
-                'basura': 'Recolección de Basura',
-                'otro': 'Otro'
-            };
-            return names[service] || service;
-        }
-
-        function getStatusName(status) {
-            const names = {
-                'pendiente': 'Pendiente',
-                'en_proceso': 'En Proceso',
-                'resuelto': 'Resuelto'
-            };
-            return names[status] || status;
-        }
-
-        function getServiceIcon(service) {
-            const icons = {
-                'agua': '💧',
-                'alcantarillado': '🚰',
-                'vias': '🛣️',
-                'basura': '🗑️',
-                'otro': '📋'
-            };
-            return icons[service] || '📍';
-        }
-
-        // Mensaje inicial
-        showMessage('🗺️ Bienvenido al Geovisor de Reportes. Haga clic en el mapa para comenzar.', 'info');
+            
+            @keyframes bounce {
+                0%, 20%, 50%, 80%, 100% {
+                    transform: translateY(0);
+                }
+                40% {
+                    transform: translateY(-10px);
+                }
+                60% {
+                    transform: translateY(-5px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
