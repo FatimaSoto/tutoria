@@ -1,1 +1,1746 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geoportal Integrado - Predios, Servicios y Reportes</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        .sidebar {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        .map-container {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card.predios {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+        }
+        
+        .stat-card.agua {
+            background: linear-gradient(45deg, #1abc9c, #16a085);
+        }
+        
+        .stat-card.alcantarillado {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+        
+        .stat-card.vias {
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+        }
+        
+        .stat-card.recoleccion {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .stat-card.reportes {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .control-group input, .control-group select, .control-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .btn.predios {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+        }
+        
+        .btn.agua {
+            background: linear-gradient(45deg, #1abc9c, #16a085);
+        }
+        
+        .btn.alcantarillado {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+        
+        .btn.vias {
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+        }
+        
+        .btn.recoleccion {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .btn.reportes {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            display: none;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            color: #27ae60;
+        }
+        
+        .status.error {
+            color: #e74c3c;
+        }
+        
+        .layer-controls {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .layer-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        
+        .zoom-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .popup-custom {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .popup-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .popup-field {
+            margin-bottom: 4px;
+        }
+        
+        .popup-field strong {
+            color: #3498db;
+        }
 
+        /* Estilos para el modo adaptativo */
+        .mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .mode-btn {
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            background: white;
+            color: #2c3e50;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            border-color: #3498db;
+            background: #3498db;
+            color: white;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e67e22, #d35400);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        /* Estilos para el módulo de reportes */
+        .form-container-reportes {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .form-container-reportes.active {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+            font-size: 14px;
+        }
+        
+        .coordinates {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 13px;
+        }
+        
+        .report-popup {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            line-height: 1.4;
+            min-width: 250px;
+        }
+        
+        /* Estilos para marcadores personalizados */
+        .custom-marker {
+            background: none !important;
+            border: none !important;
+            font-size: 24px;
+            text-align: center;
+            line-height: 30px;
+            animation: bounce 1s infinite;
+        }
+        
+        .user-location-marker {
+            background: none !important;
+            border: none !important;
+            font-size: 28px;
+            text-align: center;
+            line-height: 30px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Adaptaciones para móviles */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 40vh;
+                overflow-y: auto;
+            }
+            
+            .map-container {
+                height: 60vh;
+            }
+            
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>🌍 Geoportal Integrado</h1>
+                <p>Visualización de predios, servicios y reportes</p>
+            </div>
+            
+            <div id="status" class="status">📍 Inicializando mapa...</div>
+            
+            <div class="mode-selector">
+                <div class="mode-btn active" onclick="setViewMode('predios')" id="modePredios">
+                    🏘️ Predios
+                </div>
+                <div class="mode-btn" onclick="setViewMode('servicios')" id="modeServicios">
+                    🛠️ Servicios
+                </div>
+                <div class="mode-btn" onclick="setViewMode('reportes')" id="modeReportes">
+                    📋 Reportes
+                </div>
+            </div>
+            
+            <!-- Controles para modo Predios -->
+            <div id="predios-controls">
+                <div class="progress-bar" id="progressContainer" style="display:none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                
+                <div class="layer-controls">
+                    <h3>Capas</h3>
+                    <div class="layer-toggle">
+                        <label for="togglePredios">🏘️ Predios</label>
+                        <label class="switch">
+                            <input type="checkbox" id="togglePredios" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="searchPredio">Buscar ID Predio:</label>
+                        <input type="text" id="searchPredio" placeholder="Ej: ABC123">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="filterTipoPredio">Tipo de Predio:</label>
+                        <select id="filterTipoPredio">
+                            <option value="">Todos los tipos</option>
+                            <option value="URBANO">Urbano</option>
+                            <option value="RURAL">Rural</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn predios" onclick="aplicarFiltrosPredios()">🔍 Buscar Predios</button>
+                    <button class="btn secondary" onclick="cargarTodosPredios()">📍 Cargar Todos Predios</button>
+                </div>
+            </div>
+            
+            <!-- Controles para modo Servicios -->
+            <div id="servicios-controls" style="display: none;">
+                <div class="layer-controls">
+                    <h3>Capas de Servicios</h3>
+                    <div class="layer-toggle">
+                        <label for="toggleAgua">💧 Red Agua Potable</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleAgua" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="layer-toggle">
+                        <label for="toggleAlcantarillado">🚽 Red Alcantarillado</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleAlcantarillado" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="layer-toggle">
+                        <label for="toggleVias">🛣️ Vías</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleVias" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="layer-toggle">
+                        <label for="toggleRecoleccion">🗑️ Ruta Recolección</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleRecoleccion" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="searchAgua">Buscar por AGUA:</label>
+                        <input type="text" id="searchAgua" placeholder="Ej: TUBO_PVC">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="filterBarrio">Filtrar por Barrio:</label>
+                        <select id="filterBarrio">
+                            <option value="">Todos los barrios</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn agua" onclick="aplicarFiltrosAgua()">🔍 Buscar Agua Potable</button>
+                    
+                    <div class="control-group">
+                        <label for="searchAlcantarillado">Buscar por SANITARIO:</label>
+                        <input type="text" id="searchAlcantarillado" placeholder="Ej: PRINCIPAL">
+                    </div>
+                    
+                    <button class="btn alcantarillado" onclick="aplicarFiltrosAlcantarillado()">🔍 Buscar Alcantarillado</button>
+                    
+                    <div class="control-group">
+                        <label for="searchVias">Buscar por NOMBRE:</label>
+                        <input type="text" id="searchVias" placeholder="Ej: AVENIDA PRINCIPAL">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="filterTipoVia">Tipo de Vía:</label>
+                        <select id="filterTipoVia">
+                            <option value="">Todos los tipos</option>
+                            <option value="PRINCIPAL">Principal</option>
+                            <option value="SECUNDARIA">Secundaria</option>
+                            <option value="TERCIARIA">Terciaria</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn vias" onclick="aplicarFiltrosVias()">🔍 Buscar Vías</button>
+                    <button class="btn recoleccion" onclick="cargarRecoleccion()">🗑️ Cargar Rutas Recolección</button>
+                    <button class="btn secondary" onclick="limpiarFiltros()">🗑️ Limpiar Filtros</button>
+                    <button class="btn secondary" onclick="centrarEnElPangui()">📍 Centrar Mapa</button>
+                </div>
+            </div>
+            
+            <!-- Controles para modo Reportes -->
+            <div id="reportes-controls" style="display: none;">
+                <div class="layer-controls">
+                    <h3>Reportes</h3>
+                    <div class="layer-toggle">
+                        <label for="toggleReportes">📍 Mostrar Reportes</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleReportes" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-card reportes">
+                        <h3 id="totalReportes">0</h3>
+                        <p>Total Reportes</p>
+                    </div>
+                    <div class="stat-card reportes">
+                        <h3 id="reportesPendientes">0</h3>
+                        <p>Pendientes</p>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn reportes" id="useLocationBtn">📍 Usar mi ubicación</button>
+                    <button class="btn secondary" onclick="limpiarReportes()">🗑️ Limpiar selección</button>
+                </div>
+                
+                <div id="reportes-status" class="status"></div>
+                
+                <!-- Formulario de reportes (se muestra dinámicamente) -->
+                <div id="form-container-reportes" class="form-container-reportes">
+                    <h3>📋 Reportar Problema</h3>
+                    <div class="coordinates" id="reportes-coordinates"></div>
+                    <form id="reportForm">
+                        <div class="form-group">
+                            <label for="tipoServicio">🔧 Tipo de servicio:</label>
+                            <select id="tipoServicio" required>
+                                <option value="">Selecciona un servicio</option>
+                                <option value="Agua potable">💧 Agua potable</option>
+                                <option value="Electricidad">⚡ Electricidad</option>
+                                <option value="Internet">🌐 Internet</option>
+                                <option value="Teléfono">📞 Teléfono</option>
+                                <option value="Alcantarillado">🚰 Alcantarillado</option>
+                                <option value="Gas">🔥 Gas</option>
+                                <option value="Recolección de basura">🗑️ Recolección de basura</option>
+                                <option value="Alumbrado público">💡 Alumbrado público</option>
+                                <option value="Vías y calles">🛣️ Vías y calles</option>
+                                <option value="Otro">❓ Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="estado">📝 Estado del problema:</label>
+                            <select id="estado" required>
+                                <option value="">Selecciona el estado</option>
+                                <option value="Reportado">🆕 Reportado</option>
+                                <option value="En proceso">⏳ En proceso</option>
+                                <option value="Resuelto">✅ Resuelto</option>
+                                <option value="Crítico">🚨 Crítico</option>
+                            </select>
+                        </div>
+                        <div style="text-align: center; margin-top: 15px;">
+                            <button type="submit" class="btn reportes">📤 Enviar Reporte</button>
+                            <button type="button" class="btn btn-cancel" id="cancelReportBtn">❌ Cancelar</button>
+                        </div>
+                    </form>
+                    <div class="success-message" id="reportSuccessMessage">
+                        ✅ ¡Reporte enviado exitosamente!
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Elementos de carga -->
+            <div id="loadingPredios" class="loading">
+                <div class="spinner"></div>
+                <p id="loadingTextPredios">Cargando predios...</p>
+            </div>
+            
+            <div id="loadingAgua" class="loading">
+                <div class="spinner"></div>
+                <p>Cargando agua potable...</p>
+            </div>
+            
+            <div id="loadingAlcantarillado" class="loading">
+                <div class="spinner"></div>
+                <p>Cargando alcantarillado...</p>
+            </div>
+            
+            <div id="loadingVias" class="loading">
+                <div class="spinner"></div>
+                <p>Cargando vías...</p>
+            </div>
+            
+            <div id="loadingRecoleccion" class="loading">
+                <div class="spinner"></div>
+                <p>Cargando rutas recolección...</p>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="mapLoading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p id="loadingText">Cargando datos...</p>
+            </div>
+            <div class="zoom-info">
+                Zoom: <span id="currentZoom">12</span> | 
+                Modo: <span id="currentMode">Predios</span>
+            </div>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://dpxlpyyelqbwudkhdtbw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRweGxweXllbHFid3Vka2hkdGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxMjMwNjksImV4cCI6MjA2NTY5OTA2OX0.j8evYP_owzPeJmZ5GgdHnjpg1dYE4DShcI9fYYA8xG8';
+        const EL_PANGUI_COORDS = [-3.6167, -78.55];
+        
+        // Variables globales
+        let map;
+        const prediosLayer = L.layerGroup();
+        const aguaLayer = L.layerGroup();
+        const alcantarilladoLayer = L.layerGroup();
+        const viasLayer = L.layerGroup();
+        const recoleccionLayer = L.layerGroup();
+        const reportesLayer = L.layerGroup();
+        
+        let currentPrediosData = [], currentAguaData = [], currentAlcantarilladoData = [], 
+            currentViasData = [], currentRecoleccionData = [], currentReportesData = [];
+        
+        let loading = false, zoom = 12, timer;
+        let viewMode = 'predios';
+        let allPrediosCache = null;
+        let reportMarkers = [];
+        let selectedReportPoint = null;
+        let currentReportMarker = null;
+        let userLocationMarker = null;
+        let markerClusterGroup;
+
+        // Función para inicializar el mapa
+        function initMap() {
+            map = L.map('map').setView(EL_PANGUI_COORDS, zoom);
+            
+            // Capa base
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            // Añadir capas al mapa
+            prediosLayer.addTo(map);
+            aguaLayer.addTo(map);
+            alcantarilladoLayer.addTo(map);
+            viasLayer.addTo(map);
+            recoleccionLayer.addTo(map);
+            reportesLayer.addTo(map);
+            
+            // Configurar toggles de capas
+            document.getElementById('togglePredios').addEventListener('change', function(e) {
+                e.target.checked ? prediosLayer.addTo(map) : map.removeLayer(prediosLayer);
+            });
+            
+            document.getElementById('toggleAgua').addEventListener('change', function(e) {
+                e.target.checked ? aguaLayer.addTo(map) : map.removeLayer(aguaLayer);
+            });
+            
+            document.getElementById('toggleAlcantarillado').addEventListener('change', function(e) {
+                e.target.checked ? alcantarilladoLayer.addTo(map) : map.removeLayer(alcantarilladoLayer);
+            });
+            
+            document.getElementById('toggleVias').addEventListener('change', function(e) {
+                e.target.checked ? viasLayer.addTo(map) : map.removeLayer(viasLayer);
+            });
+            
+            document.getElementById('toggleRecoleccion').addEventListener('change', function(e) {
+                e.target.checked ? recoleccionLayer.addTo(map) : map.removeLayer(recoleccionLayer);
+            });
+            
+            document.getElementById('toggleReportes').addEventListener('change', function(e) {
+                e.target.checked ? reportesLayer.addTo(map) : map.removeLayer(reportesLayer);
+            });
+            
+            // Eventos del mapa
+            map.on('zoomend', function() {
+                const newZoom = map.getZoom();
+                document.getElementById('currentZoom').textContent = newZoom;
+                zoom = newZoom;
+            });
+            
+            // Configurar eventos para el modo de reportes
+            configurarEventosReportes();
+            
+            updateStatus('Mapa listo', 'success');
+            
+            // Cargar datos iniciales
+            cargarPrediosIniciales();
+            cargarAgua();
+            cargarAlcantarillado();
+            cargarVias();
+            cargarRecoleccion();
+            cargarReportesExistentes();
+        }
+        
+        // Función para configurar eventos del modo reportes
+        function configurarEventosReportes() {
+            map.off('click'); // Limpiar eventos anteriores
+            
+            map.on('click', function(e) {
+                if (viewMode !== 'reportes') return;
+                
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                
+                // Remover marcador anterior si existe
+                if (currentReportMarker) {
+                    map.removeLayer(currentReportMarker);
+                }
+                
+                // Crear nuevo marcador
+                currentReportMarker = L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        html: '📍',
+                        iconSize: [30, 30],
+                        className: 'custom-marker'
+                    })
+                }).addTo(map);
+                
+                // Guardar punto seleccionado
+                selectedReportPoint = { lat, lng };
+                
+                // Mostrar formulario
+                mostrarFormularioReporte(lat, lng);
+                updateStatus('📍 Ubicación seleccionada manualmente. Completa el formulario.', 'success');
+            });
+        }
+        
+        // Función para mostrar el formulario de reporte
+        function mostrarFormularioReporte(lat, lng) {
+            document.getElementById('reportes-coordinates').innerHTML = `
+                <strong>📍 Ubicación seleccionada:</strong><br>
+                Latitud: ${lat.toFixed(6)}<br>
+                Longitud: ${lng.toFixed(6)}
+            `;
+            
+            document.getElementById('form-container-reportes').classList.add('active');
+            document.getElementById('reportes-status').textContent = '📝 Completa el formulario para reportar el problema';
+        }
+        
+        // Función para cancelar reporte
+        function cancelarReporte() {
+            document.getElementById('form-container-reportes').classList.remove('active');
+            document.getElementById('reportes-status').textContent = '';
+            
+            if (currentReportMarker) {
+                map.removeLayer(currentReportMarker);
+                currentReportMarker = null;
+            }
+            selectedReportPoint = null;
+        }
+        
+        // Función para enviar reporte
+        async function enviarReporte(e) {
+            e.preventDefault();
+            
+            if (!selectedReportPoint) {
+                alert('Por favor selecciona un punto en el mapa');
+                return;
+            }
+            
+            const formData = {
+                tipo_servicio: document.getElementById('tipoServicio').value,
+                x: selectedReportPoint.lng.toString(),
+                y: selectedReportPoint.lat.toString(),
+                estado: document.getElementById('estado').value,
+                geom: `POINT(${selectedReportPoint.lng} ${selectedReportPoint.lat})`
+            };
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/reporte_usuarios`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('reportSuccessMessage').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('reportSuccessMessage').style.display = 'none';
+                        cancelarReporte();
+                        cargarReportesExistentes();
+                    }, 2000);
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                console.error('Error enviando reporte:', error);
+                updateStatus('❌ Error enviando reporte', 'error');
+            }
+        }
+        
+        // Función para obtener ubicación del usuario
+        function obtenerUbicacionUsuario() {
+            if (!navigator.geolocation) {
+                alert('Tu navegador no soporta geolocalización');
+                return;
+            }
+            
+            document.getElementById('reportes-status').textContent = '📍 Obteniendo tu ubicación...';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    // Centrar mapa
+                    map.setView([lat, lng], 17);
+                    
+                    // Limpiar marcadores anteriores
+                    if (currentReportMarker) map.removeLayer(currentReportMarker);
+                    if (userLocationMarker) map.removeLayer(userLocationMarker);
+                    
+                    // Crear marcador de ubicación
+                    userLocationMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            html: '🎯',
+                            iconSize: [30, 30],
+                            className: 'user-location-marker'
+                        })
+                    }).addTo(map);
+                    
+                    // Guardar punto seleccionado
+                    selectedReportPoint = { lat, lng };
+                    
+                    // Mostrar formulario
+                    mostrarFormularioReporte(lat, lng);
+                    document.getElementById('reportes-status').textContent = '🎯 Ubicación detectada. Completa el formulario.';
+                },
+                function(error) {
+                    console.error('Error de geolocalización:', error);
+                    document.getElementById('reportes-status').textContent = '❌ Error obteniendo ubicación. Haz clic en el mapa.';
+                }
+            );
+        }
+        
+        // Función para limpiar selección de reportes
+        function limpiarReportes() {
+            if (currentReportMarker) {
+                map.removeLayer(currentReportMarker);
+                currentReportMarker = null;
+            }
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+                userLocationMarker = null;
+            }
+            document.getElementById('form-container-reportes').classList.remove('active');
+            document.getElementById('reportes-status').textContent = '';
+            selectedReportPoint = null;
+        }
+        
+        // Función para cargar reportes existentes
+        async function cargarReportesExistentes() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/reporte_usuarios?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const reports = await response.json();
+                    currentReportesData = reports;
+                    renderizarReportes(reports);
+                    actualizarEstadisticasReportes(reports);
+                    updateStatus(`✅ ${reports.length} reportes cargados`, 'success');
+                }
+            } catch (error) {
+                console.error('Error cargando reportes:', error);
+                updateStatus('❌ Error cargando reportes', 'error');
+            }
+        }
+        
+        // Función para renderizar reportes en el mapa
+        function renderizarReportes(reports) {
+            reportesLayer.clearLayers();
+            reportMarkers = [];
+            
+            reports.forEach(report => {
+                if (report.x && report.y) {
+                    const lat = parseFloat(report.y);
+                    const lng = parseFloat(report.x);
+                    
+                    let markerColor = '#007bff';
+                    let iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png';
+                    
+                    switch(report.estado) {
+                        case 'Reportado':
+                            markerColor = '#dc3545';
+                            iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png';
+                            break;
+                        case 'En proceso':
+                            markerColor = '#ffc107';
+                            iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png';
+                            break;
+                        case 'Resuelto':
+                            markerColor = '#28a745';
+                            iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png';
+                            break;
+                        case 'Crítico':
+                            markerColor = '#dc3545';
+                            iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png';
+                            break;
+                    }
+                    
+                    const customIcon = L.icon({
+                        iconUrl: iconUrl,
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                        shadowSize: [41, 41]
+                    });
+                    
+                    const marker = L.marker([lat, lng], {
+                        icon: customIcon,
+                        riseOnHover: true
+                    }).bindPopup(crearPopupReporte(report));
+                    
+                    reportesLayer.addLayer(marker);
+                    reportMarkers.push(marker);
+                }
+            });
+        }
+        
+        // Función para actualizar estadísticas de reportes
+        function actualizarEstadisticasReportes(reports) {
+            document.getElementById('totalReportes').textContent = reports.length;
+            
+            const pendientes = reports.filter(r => r.estado === 'Reportado' || r.estado === 'Crítico').length;
+            document.getElementById('reportesPendientes').textContent = pendientes;
+        }
+        
+        // Función para crear popup de reporte
+        function crearPopupReporte(report) {
+            return `
+                <div class="report-popup">
+                    <h3 style="margin: 0 0 8px 0; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                        ${getServiceIcon(report.tipo_servicio)} ${report.tipo_servicio}
+                    </h3>
+                    <p style="margin: 5px 0;"><strong>📊 Estado:</strong> <span style="color: ${getColorByStatus(report.estado)}; font-weight: bold;">${report.estado}</span></p>
+                    <p style="margin: 5px 0; font-size: 0.9em; color: #666;">
+                        <strong>📍 Coordenadas:</strong> ${report.y}, ${report.x}
+                    </p>
+                    <p style="margin: 5px 0; font-size: 0.9em; color: #666;">
+                        <strong>📅 Fecha:</strong> ${report.created_at ? new Date(report.created_at).toLocaleString() : 'No disponible'}
+                    </p>
+                </div>
+            `;
+        }
+        
+        // Función auxiliar para obtener iconos de servicio
+        function getServiceIcon(service) {
+            const icons = {
+                'Agua potable': '💧',
+                'Electricidad': '⚡',
+                'Internet': '🌐',
+                'Teléfono': '📞',
+                'Alcantarillado': '🚰',
+                'Gas': '🔥',
+                'Recolección de basura': '🗑️',
+                'Alumbrado público': '💡',
+                'Vías y calles': '🛣️',
+                'Otro': '❓'
+            };
+            return icons[service] || '📋';
+        }
+        
+        // Función auxiliar para obtener color por estado
+        function getColorByStatus(status) {
+            const colors = {
+                'Reportado': '#dc3545',
+                'En proceso': '#ffc107',
+                'Resuelto': '#28a745',
+                'Crítico': '#dc3545'
+            };
+            return colors[status] || '#007bff';
+        }
+
+        // Función para establecer el modo de vista
+        function setViewMode(mode) {
+            viewMode = mode;
+            
+            // Actualizar botones activos
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('active');
+            
+            // Mostrar/ocultar controles según el modo
+            document.getElementById('predios-controls').style.display = mode === 'predios' ? 'block' : 'none';
+            document.getElementById('servicios-controls').style.display = mode === 'servicios' ? 'block' : 'none';
+            document.getElementById('reportes-controls').style.display = mode === 'reportes' ? 'block' : 'none';
+            
+            // Actualizar texto del modo actual
+            const modeText = {
+                'predios': 'Predios',
+                'servicios': 'Servicios',
+                'reportes': 'Reportes'
+            };
+            document.getElementById('currentMode').textContent = modeText[mode];
+            
+            // Configurar eventos del mapa según el modo
+            configurarEventosModo(mode);
+        }
+        
+        // Función para configurar eventos según el modo
+        function configurarEventosModo(mode) {
+            map.off('click'); // Limpiar eventos anteriores
+            
+            if (mode === 'reportes') {
+                configurarEventosReportes();
+            } else if (mode === 'predios') {
+                // Configurar eventos para modo predios (si es necesario)
+            } else if (mode === 'servicios') {
+                // Configurar eventos para modo servicios (si es necesario)
+            }
+        }
+        
+        // Función para cargar predios iniciales
+        async function cargarPrediosIniciales() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/predios_texto?select=objectid,id_pred,tipo_pred,uso_pred,area_graf,desprov,descan,avaluo_tot,geom&limit=500`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentPrediosData = data;
+                    renderizarPredios(data);
+                }
+            } catch (error) {
+                console.error('Error cargando predios iniciales:', error);
+            }
+        }
+        
+        // Función para cargar TODOS los predios (por lotes)
+        async function cargarTodosPredios() {
+            if (loading) return;
+            loading = true;
+            showProgress(true);
+            showLoader(true, 'Iniciando carga masiva de predios...');
+            
+            try {
+                // Intentar función RPC optimizada primero
+                try {
+                    setLoadingText('🚀 Probando función RPC get_predios_geo...');
+                    updateProgress(10);
+                    
+                    const data = await callRPC('get_predios_geo', {});
+                    
+                    updateProgress(80);
+                    setLoadingText('📊 Procesando geometrías RPC...');
+                    
+                    currentPrediosData = data.map(item => ({
+                        objectid: item.objectid,
+                        id_pred: item.id_pred || '',
+                        tipo_pred: item.tipo_pred || '',
+                        uso_pred: item.uso_pred || '',
+                        area_graf: item.area_graf,
+                        desprov: item.desprov || '',
+                        descan: item.descan || '',
+                        avaluo_tot: item.avaluo_tot,
+                        geom: item.geom
+                    }));
+                    
+                    allPrediosCache = currentPrediosData;
+                    updateProgress(100);
+                    setLoadingText('✅ Renderizando desde RPC...');
+                    
+                    setTimeout(() => {
+                        renderizarPredios(currentPrediosData);
+                        updateStatus(`🎉 Carga RPC exitosa: ${currentPrediosData.length.toLocaleString()} predios`, 'success');
+                    }, 200);
+                    
+                } catch (rpcError) {
+                    console.warn('RPC get_predios_geo falló:', rpcError);
+                    setLoadingText('📦 RPC falló - usando carga por lotes...');
+                    updateProgress(0);
+                    
+                    // Fallback: Carga por lotes tradicional
+                    const batchSize = 1000;
+                    let offset = 0;
+                    let allData = [];
+                    let batchCount = 0;
+                    let hasMore = true;
+                    
+                    while (hasMore && offset < 15000) {
+                        batchCount++;
+                        setLoadingText(`📥 Cargando lote ${batchCount} (${offset}-${offset + batchSize})...`);
+                        updateProgress((offset / 15000) * 100);
+                        
+                        try {
+                            const batch = await loadBatchPredios(offset, batchSize);
+                            
+                            if (batch.length === 0) {
+                                hasMore = false;
+                            } else {
+                                allData.push(...batch);
+                                offset += batchSize;
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                            }
+                            
+                            if (batch.length < batchSize) {
+                                hasMore = false;
+                            }
+                            
+                        } catch (batchError) {
+                            console.error(`Error en lote ${batchCount}:`, batchError);
+                            offset += batchSize;
+                            if (batchCount > 15) {
+                                hasMore = false;
+                            }
+                        }
+                    }
+                    
+                    allPrediosCache = allData;
+                    currentPrediosData = allData;
+                    updateProgress(100);
+                    setLoadingText('✅ Renderizando desde lotes...');
+                    
+                    setTimeout(() => {
+                        renderizarPredios(currentPrediosData);
+                        updateStatus(`✅ Carga por lotes exitosa: ${currentPrediosData.length.toLocaleString()} predios`, 'success');
+                    }, 200);
+                }
+                
+            } catch (e) {
+                console.error('Error en carga masiva:', e);
+                updateStatus('❌ Error general en carga masiva', 'error');
+            } finally {
+                loading = false;
+                setTimeout(() => {
+                    showLoader(false);
+                    showProgress(false);
+                }, 500);
+            }
+        }
+        
+        // Función para cargar un lote de predios
+        async function loadBatchPredios(offset, limit) {
+            const url = `${SUPABASE_URL}/rest/v1/predios_texto?select=objectid,id_pred,tipo_pred,uso_pred,area_graf,desprov,descan,avaluo_tot,geom&offset=${offset}&limit=${limit}&order=objectid.asc`;
+            
+            const response = await fetch(url, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            return await response.json();
+        }
+        
+        // Función para llamar a RPC de Supabase
+        async function callRPC(functionName, params) {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(params)
+            });
+            
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`RPC Error ${res.status}: ${errorText}`);
+            }
+            return await res.json();
+        }
+        
+        // Función para renderizar predios
+        function renderizarPredios(data) {
+            prediosLayer.clearLayers();
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    const layer = L.geoJSON(geom, {
+                        style: {
+                            color: getColorPredio(item.tipo_pred),
+                            weight: 1,
+                            fillOpacity: 0.2,
+                            opacity: 1
+                        }
+                    }).bindPopup(crearPopupPredio(item));
+                    
+                    prediosLayer.addLayer(layer);
+                } catch (e) {
+                    console.error('Error renderizando predio:', e);
+                }
+            });
+        }
+        
+        // Función para crear popup de predio
+        function crearPopupPredio(item) {
+            return `
+                <div class="popup-custom">
+                    <div class="popup-title">🏘️ Predio: ${item.id_pred || 'N/A'}</div>
+                    <div class="popup-field"><strong>ID:</strong> ${item.objectid || 'N/A'}</div>
+                    <div class="popup-field"><strong>Tipo:</strong> ${item.tipo_pred || 'N/A'}</div>
+                    <div class="popup-field"><strong>Uso:</strong> ${item.uso_pred || 'N/A'}</div>
+                    <div class="popup-field"><strong>Área:</strong> ${item.area_graf ? item.area_graf + ' m²' : 'N/A'}</div>
+                </div>
+            `;
+        }
+        
+        // Función auxiliar para color de predio
+        function getColorPredio(tipo) {
+            const colors = {
+                'URBANO': '#e74c3c',
+                'RURAL': '#2ecc71',
+                'INDUSTRIAL': '#3498db'
+            };
+            return colors[tipo] || '#e67e22';
+        }
+        
+        // Función para cargar agua potable
+        async function cargarAgua(filtros = {}) {
+            try {
+                let query = `${SUPABASE_URL}/rest/v1/red_agua_potable?select=id,OBJECTID,Layer,AGUA,AREA,PAR_BARRIO,Shape_Leng,geom`;
+                
+                const conditions = [];
+                if (filtros.agua) conditions.push(`AGUA.ilike.%${filtros.agua}%`);
+                if (filtros.barrio) conditions.push(`PAR_BARRIO.ilike.%${filtros.barrio}%`);
+                
+                if (conditions.length > 0) query += `&${conditions.join('&')}`;
+                
+                query += '&limit=500';
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentAguaData = data;
+                    renderizarAgua(data);
+                    cargarBarriosDisponibles(data);
+                }
+            } catch (error) {
+                console.error('Error cargando agua potable:', error);
+            }
+        }
+        
+        // Función para renderizar agua potable
+        function renderizarAgua(data) {
+            aguaLayer.clearLayers();
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    const layer = L.geoJSON(geom, {
+                        style: {
+                            color: '#1E90FF',
+                            weight: 3,
+                            opacity: 1
+                        }
+                    }).bindPopup(crearPopupAgua(item));
+                    
+                    aguaLayer.addLayer(layer);
+                } catch (e) {
+                    console.error('Error renderizando agua potable:', e);
+                }
+            });
+        }
+        
+        // Función para crear popup de agua
+        function crearPopupAgua(item) {
+            return `
+                <div class="popup-custom">
+                    <div class="popup-title">💧 Agua Potable</div>
+                    <div class="popup-field"><strong>Tipo:</strong> ${item.AGUA || 'N/A'}</div>
+                    <div class="popup-field"><strong>Barrio:</strong> ${item.PAR_BARRIO || 'N/A'}</div>
+                </div>
+            `;
+        }
+        
+        // Función para cargar alcantarillado
+        async function cargarAlcantarillado(filtros = {}) {
+            try {
+                let query = `${SUPABASE_URL}/rest/v1/red_alcantarillado_sanitario?select=id,OBJECTID,Entity,Layer,Color,Linetype,Elevation,SANITARIO,Shape_Leng,geom`;
+                
+                const conditions = [];
+                if (filtros.sanitario) conditions.push(`SANITARIO.ilike.%${filtros.sanitario}%`);
+                
+                if (conditions.length > 0) query += `&${conditions.join('&')}`;
+                
+                query += '&limit=500';
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentAlcantarilladoData = data;
+                    renderizarAlcantarillado(data);
+                }
+            } catch (error) {
+                console.error('Error cargando alcantarillado:', error);
+            }
+        }
+        
+        // Función para renderizar alcantarillado
+        function renderizarAlcantarillado(data) {
+            alcantarilladoLayer.clearLayers();
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    const layer = L.geoJSON(geom, {
+                        style: {
+                            color: '#9b59b6',
+                            weight: 3,
+                            opacity: 1
+                        }
+                    }).bindPopup(crearPopupAlcantarillado(item));
+                    
+                    alcantarilladoLayer.addLayer(layer);
+                } catch (e) {
+                    console.error('Error renderizando alcantarillado:', e);
+                }
+            });
+        }
+        
+        // Función para crear popup de alcantarillado
+        function crearPopupAlcantarillado(item) {
+            return `
+                <div class="popup-custom">
+                    <div class="popup-title">🚽 Alcantarillado</div>
+                    <div class="popup-field"><strong>Tipo:</strong> ${item.SANITARIO || 'N/A'}</div>
+                </div>
+            `;
+        }
+        
+        // Función para cargar vías
+        async function cargarVias(filtros = {}) {
+            try {
+                let query = `${SUPABASE_URL}/rest/v1/vias?select=id,OBJECTID,NOMBRE,PAR_BARRIO,Shape_Leng,Tipo,geom`;
+                
+                const conditions = [];
+                if (filtros.nombre) conditions.push(`NOMBRE.ilike.%${filtros.nombre}%`);
+                if (filtros.tipo) conditions.push(`Tipo.eq.${filtros.tipo}`);
+                
+                if (conditions.length > 0) query += `&${conditions.join('&')}`;
+                
+                query += '&limit=500';
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentViasData = data;
+                    renderizarVias(data);
+                }
+            } catch (error) {
+                console.error('Error cargando vías:', error);
+            }
+        }
+        
+        // Función para renderizar vías
+        function renderizarVias(data) {
+            viasLayer.clearLayers();
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    const layer = L.geoJSON(geom, {
+                        style: {
+                            color: getColorVia(item.Tipo),
+                            weight: getWeightVia(item.Tipo),
+                            opacity: 1
+                        }
+                    }).bindPopup(crearPopupVia(item));
+                    
+                    viasLayer.addLayer(layer);
+                } catch (e) {
+                    console.error('Error renderizando vía:', e);
+                }
+            });
+        }
+        
+        // Función auxiliar para color de vía
+        function getColorVia(tipo) {
+            const colors = {
+                'PRINCIPAL': '#e74c3c',
+                'SECUNDARIA': '#f39c12',
+                'TERCIARIA': '#3498db'
+            };
+            return colors[tipo] || '#34495e';
+        }
+        
+        // Función auxiliar para grosor de vía
+        function getWeightVia(tipo) {
+            const weights = {
+                'PRINCIPAL': 4,
+                'SECUNDARIA': 3,
+                'TERCIARIA': 2
+            };
+            return weights[tipo] || 2;
+        }
+        
+        // Función para crear popup de vía
+        function crearPopupVia(item) {
+            return `
+                <div class="popup-custom">
+                    <div class="popup-title">🛣️ Vía: ${item.NOMBRE || 'N/A'}</div>
+                    <div class="popup-field"><strong>Tipo:</strong> ${item.Tipo || 'N/A'}</div>
+                    <div class="popup-field"><strong>Barrio:</strong> ${item.PAR_BARRIO || 'N/A'}</div>
+                </div>
+            `;
+        }
+        
+        // Función para cargar recolección
+        async function cargarRecoleccion() {
+            try {
+                const query = `${SUPABASE_URL}/rest/v1/ruta_recoleccion?select=id,geom&limit=500`;
+                
+                const response = await fetch(query, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentRecoleccionData = data;
+                    renderizarRecoleccion(data);
+                }
+            } catch (error) {
+                console.error('Error cargando rutas de recolección:', error);
+            }
+        }
+        
+        // Función para renderizar recolección
+        function renderizarRecoleccion(data) {
+            recoleccionLayer.clearLayers();
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    const layer = L.geoJSON(geom, {
+                        style: {
+                            color: '#e74c3c',
+                            weight: 4,
+                            opacity: 1,
+                            dashArray: '10, 5'
+                        }
+                    }).bindPopup(crearPopupRecoleccion(item));
+                    
+                    recoleccionLayer.addLayer(layer);
+                } catch (e) {
+                    console.error('Error renderizando ruta de recolección:', e);
+                }
+            });
+        }
+        
+        // Función para crear popup de recolección
+        function crearPopupRecoleccion(item) {
+            return `
+                <div class="popup-custom">
+                    <div class="popup-title">🗑️ Ruta de Recolección</div>
+                </div>
+            `;
+        }
+        
+        // Función para cargar barrios disponibles
+        function cargarBarriosDisponibles(data) {
+            const select = document.getElementById('filterBarrio');
+            const barrios = [...new Set(data.map(item => item.PAR_BARRIO).filter(Boolean))];
+            
+            select.innerHTML = '<option value="">Todos los barrios</option>';
+            barrios.forEach(barrio => {
+                const option = document.createElement('option');
+                option.value = barrio;
+                option.textContent = barrio;
+                select.appendChild(option);
+            });
+        }
+        
+        // Función para aplicar filtros de predios
+        function aplicarFiltrosPredios() {
+            const filtros = {
+                id: document.getElementById('searchPredio').value.trim(),
+                tipo: document.getElementById('filterTipoPredio').value
+            };
+            
+            const filtered = currentPrediosData.filter(item => {
+                const matchesId = !filtros.id || 
+                    (item.id_pred && item.id_pred.toLowerCase().includes(filtros.id.toLowerCase()));
+                const matchesTipo = !filtros.tipo || 
+                    (item.tipo_pred && item.tipo_pred === filtros.tipo);
+                return matchesId && matchesTipo;
+            });
+            
+            renderizarPredios(filtered);
+        }
+        
+        // Función para aplicar filtros de agua
+        function aplicarFiltrosAgua() {
+            const filtros = {
+                agua: document.getElementById('searchAgua').value.trim(),
+                barrio: document.getElementById('filterBarrio').value
+            };
+            cargarAgua(filtros);
+        }
+        
+        // Función para aplicar filtros de alcantarillado
+        function aplicarFiltrosAlcantarillado() {
+            const filtros = {
+                sanitario: document.getElementById('searchAlcantarillado').value.trim()
+            };
+            cargarAlcantarillado(filtros);
+        }
+        
+        // Función para aplicar filtros de vías
+        function aplicarFiltrosVias() {
+            const filtros = {
+                nombre: document.getElementById('searchVias').value.trim(),
+                tipo: document.getElementById('filterTipoVia').value
+            };
+            cargarVias(filtros);
+        }
+        
+        // Función para limpiar filtros
+        function limpiarFiltros() {
+            document.getElementById('searchPredio').value = '';
+            document.getElementById('filterTipoPredio').value = '';
+            document.getElementById('searchAgua').value = '';
+            document.getElementById('filterBarrio').value = '';
+            document.getElementById('searchAlcantarillado').value = '';
+            document.getElementById('searchVias').value = '';
+            document.getElementById('filterTipoVia').value = '';
+            
+            cargarPrediosIniciales();
+            cargarAgua();
+            cargarAlcantarillado();
+            cargarVias();
+            cargarRecoleccion();
+        }
+        
+        // Función para centrar en El Pangui
+        function centrarEnElPangui() {
+            map.setView(EL_PANGUI_COORDS, 12);
+        }
+        
+        // Función para mostrar/ocultar loader
+        function showLoader(show, text = 'Cargando...') {
+            const loader = document.getElementById('mapLoading');
+            loader.style.display = show ? 'block' : 'none';
+            if (text) document.getElementById('loadingText').textContent = text;
+        }
+        
+        // Función para mostrar/ocultar barra de progreso
+        function showProgress(show) {
+            const container = document.getElementById('progressContainer');
+            container.style.display = show ? 'block' : 'none';
+            if (!show) {
+                updateProgress(0);
+            }
+        }
+        
+        // Función para actualizar barra de progreso
+        function updateProgress(percent) {
+            const fill = document.getElementById('progressFill');
+            const clampedPercent = Math.min(Math.max(percent, 0), 100);
+            fill.style.width = `${clampedPercent}%`;
+            
+            if (percent > 0) {
+                const loadingText = document.getElementById('loadingText');
+                loadingText.textContent = `Cargando... ${clampedPercent.toFixed(1)}%`;
+            }
+        }
+        
+        // Función para actualizar texto de carga
+        function setLoadingText(text) {
+            document.getElementById('loadingText').textContent = text;
+        }
+        
+        // Función para actualizar estado
+        function updateStatus(message, type = '') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = type ? `status ${type}` : 'status';
+        }
+        
+        // Inicialización
+        window.onload = function() {
+            initMap();
+            
+            // Configurar evento del formulario de reportes
+            document.getElementById('reportForm').addEventListener('submit', enviarReporte);
+            document.getElementById('cancelReportBtn').addEventListener('click', cancelarReporte);
+            document.getElementById('useLocationBtn').addEventListener('click', obtenerUbicacionUsuario);
+        };
+    </script>
+</body>
+</html>
