@@ -369,7 +369,7 @@
             font-size: 14px;
         }
         
-        .form-group select {
+        .form-group select, .form-group input {
             width: 100%;
             padding: 8px 12px;
             border: 2px solid #e0e0e0;
@@ -499,7 +499,7 @@
                 
                 <div class="controls">
                     <div class="control-group">
-                        <label for="searchPredio">Buscar ID Predio:</label>
+                        <label for="searchPredio">Buscar Clave Catastral:</label>
                         <input type="text" id="searchPredio" placeholder="Ej: ABC123">
                     </div>
                     
@@ -543,7 +543,7 @@
                         </label>
                     </div>
                     <div class="layer-toggle">
-                        <label for="toggleRecoleccion">🗑️ Ruta Recolección</label>
+                        <label for="toggleRecoleccion">🗑️ Ruta de Recolección de Basura</label>
                         <label class="switch">
                             <input type="checkbox" id="toggleRecoleccion" checked>
                             <span class="slider"></span>
@@ -552,50 +552,13 @@
                 </div>
                 
                 <div class="controls">
-                    <div class="control-group">
-                        <label for="searchAgua">Buscar por AGUA:</label>
-                        <input type="text" id="searchAgua" placeholder="Ej: TUBO_PVC">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="filterBarrio">Filtrar por Barrio:</label>
-                        <select id="filterBarrio">
-                            <option value="">Todos los barrios</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn agua" onclick="aplicarFiltrosAgua()">🔍 Buscar Agua Potable</button>
-                    
-                    <div class="control-group">
-                        <label for="searchAlcantarillado">Buscar por SANITARIO:</label>
-                        <input type="text" id="searchAlcantarillado" placeholder="Ej: PRINCIPAL">
-                    </div>
-                    
-                    <button class="btn alcantarillado" onclick="aplicarFiltrosAlcantarillado()">🔍 Buscar Alcantarillado</button>
-                    
-                    <div class="control-group">
-                        <label for="searchVias">Buscar por NOMBRE:</label>
-                        <input type="text" id="searchVias" placeholder="Ej: AVENIDA PRINCIPAL">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="filterTipoVia">Tipo de Vía:</label>
-                        <select id="filterTipoVia">
-                            <option value="">Todos los tipos</option>
-                            <option value="PRINCIPAL">Principal</option>
-                            <option value="SECUNDARIA">Secundaria</option>
-                            <option value="TERCIARIA">Terciaria</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn vias" onclick="aplicarFiltrosVias()">🔍 Buscar Vías</button>
-                    <button class="btn recoleccion" onclick="cargarRecoleccion()">🗑️ Cargar Rutas Recolección</button>
+                    <button class="btn recoleccion" onclick="cargarRecoleccion()">🗑️ Cargar Rutas de Recolección de Basura</button>
                     <button class="btn secondary" onclick="limpiarFiltros()">🗑️ Limpiar Filtros</button>
                     <button class="btn secondary" onclick="centrarEnElPangui()">📍 Centrar Mapa</button>
                 </div>
             </div>
             
-            <!-- Controles para modo Reportes -->
+            <!-- Controles para modo Reportes (versión funcional de valida.html) -->
             <div id="reportes-controls" style="display: none;">
                 <div class="layer-controls">
                     <h3>Reportes</h3>
@@ -626,23 +589,30 @@
                 
                 <div id="reportes-status" class="status"></div>
                 
-                <!-- Formulario de reportes (se muestra dinámicamente) -->
+                <!-- Formulario de reportes (versión funcional de valida.html) -->
                 <div id="form-container-reportes" class="form-container-reportes">
                     <h3>📋 Reportar Problema</h3>
                     <div class="coordinates" id="reportes-coordinates"></div>
                     <form id="reportForm">
                         <div class="form-group">
+			    <label for="nombreReporte">👤 Nombre completo:</label>
+			    <input type="text" id="nombreReporte" required placeholder="Ingrese su nombre completo">
+ 			</div>
+        		<div class="form-group">
+            		    <label for="telefonoReporte">📞 Teléfono de contacto:</label>
+                            <input type="tel" id="telefonoReporte" required placeholder="Ingrese su número de teléfono">
+			</div>
+        		<div class="form-group">
+			    <label for="fechaReporte">📅 Fecha del problema:</label>
+                            <input type="date" id="fechaReporte" required>
+                        </div>
+                        <div class="form-group">
                             <label for="tipoServicio">🔧 Tipo de servicio:</label>
                             <select id="tipoServicio" required>
                                 <option value="">Selecciona un servicio</option>
                                 <option value="Agua potable">💧 Agua potable</option>
-                                <option value="Electricidad">⚡ Electricidad</option>
-                                <option value="Internet">🌐 Internet</option>
-                                <option value="Teléfono">📞 Teléfono</option>
                                 <option value="Alcantarillado">🚰 Alcantarillado</option>
-                                <option value="Gas">🔥 Gas</option>
                                 <option value="Recolección de basura">🗑️ Recolección de basura</option>
-                                <option value="Alumbrado público">💡 Alumbrado público</option>
                                 <option value="Vías y calles">🛣️ Vías y calles</option>
                                 <option value="Otro">❓ Otro</option>
                             </select>
@@ -691,7 +661,7 @@
             
             <div id="loadingRecoleccion" class="loading">
                 <div class="spinner"></div>
-                <p>Cargando rutas recolección...</p>
+                <p>Cargando rutas de recolección de basura...</p>
             </div>
         </div>
         
@@ -800,7 +770,7 @@
             cargarReportesExistentes();
         }
         
-        // Función para configurar eventos del modo reportes
+        // Función para configurar eventos del modo reportes (versión funcional de valida.html)
         function configurarEventosReportes() {
             map.off('click'); // Limpiar eventos anteriores
             
@@ -833,7 +803,7 @@
             });
         }
         
-        // Función para mostrar el formulario de reporte
+        // Función para mostrar el formulario de reporte (versión funcional de valida.html)
         function mostrarFormularioReporte(lat, lng) {
             document.getElementById('reportes-coordinates').innerHTML = `
                 <strong>📍 Ubicación seleccionada:</strong><br>
@@ -845,7 +815,7 @@
             document.getElementById('reportes-status').textContent = '📝 Completa el formulario para reportar el problema';
         }
         
-        // Función para cancelar reporte
+        // Función para cancelar reporte (versión funcional de valida.html)
         function cancelarReporte() {
             document.getElementById('form-container-reportes').classList.remove('active');
             document.getElementById('reportes-status').textContent = '';
@@ -857,7 +827,7 @@
             selectedReportPoint = null;
         }
         
-        // Función para enviar reporte
+        // Función para enviar reporte (versión funcional de valida.html)
         async function enviarReporte(e) {
             e.preventDefault();
             
@@ -901,7 +871,7 @@
             }
         }
         
-        // Función para obtener ubicación del usuario
+        // Función para obtener ubicación del usuario (versión funcional de valida.html)
         function obtenerUbicacionUsuario() {
             if (!navigator.geolocation) {
                 alert('Tu navegador no soporta geolocalización');
@@ -945,7 +915,7 @@
             );
         }
         
-        // Función para limpiar selección de reportes
+        // Función para limpiar selección de reportes (versión funcional de valida.html)
         function limpiarReportes() {
             if (currentReportMarker) {
                 map.removeLayer(currentReportMarker);
@@ -960,7 +930,7 @@
             selectedReportPoint = null;
         }
         
-        // Función para cargar reportes existentes
+        // Función para cargar reportes existentes (versión funcional de valida.html)
         async function cargarReportesExistentes() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/reporte_usuarios?select=*`, {
@@ -983,7 +953,7 @@
             }
         }
         
-        // Función para renderizar reportes en el mapa
+        // Función para renderizar reportes en el mapa (versión funcional de valida.html)
         function renderizarReportes(reports) {
             reportesLayer.clearLayers();
             reportMarkers = [];
@@ -1035,7 +1005,7 @@
             });
         }
         
-        // Función para actualizar estadísticas de reportes
+        // Función para actualizar estadísticas de reportes (versión funcional de valida.html)
         function actualizarEstadisticasReportes(reports) {
             document.getElementById('totalReportes').textContent = reports.length;
             
@@ -1043,7 +1013,7 @@
             document.getElementById('reportesPendientes').textContent = pendientes;
         }
         
-        // Función para crear popup de reporte
+        // Función para crear popup de reporte (versión funcional de valida.html)
         function crearPopupReporte(report) {
             return `
                 <div class="report-popup">
@@ -1061,24 +1031,19 @@
             `;
         }
         
-        // Función auxiliar para obtener iconos de servicio
+        // Función auxiliar para obtener iconos de servicio (versión funcional de valida.html)
         function getServiceIcon(service) {
             const icons = {
                 'Agua potable': '💧',
-                'Electricidad': '⚡',
-                'Internet': '🌐',
-                'Teléfono': '📞',
                 'Alcantarillado': '🚰',
-                'Gas': '🔥',
                 'Recolección de basura': '🗑️',
-                'Alumbrado público': '💡',
                 'Vías y calles': '🛣️',
                 'Otro': '❓'
             };
             return icons[service] || '📋';
         }
         
-        // Función auxiliar para obtener color por estado
+        // Función auxiliar para obtener color por estado (versión funcional de valida.html)
         function getColorByStatus(status) {
             const colors = {
                 'Reportado': '#dc3545',
@@ -1130,7 +1095,7 @@
         // Función para cargar predios iniciales
         async function cargarPrediosIniciales() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/predios_texto?select=objectid,id_pred,tipo_pred,uso_pred,area_graf,desprov,descan,avaluo_tot,geom&limit=500`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/predios_texto?select=objectid,id_pred,tipo_pred,ocup,area_graf,area_cons,avaluo_trr,avaluo_con,avaluo_tot,desprov,descan,geom&limit=500`, {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
@@ -1169,11 +1134,14 @@
                         objectid: item.objectid,
                         id_pred: item.id_pred || '',
                         tipo_pred: item.tipo_pred || '',
-                        uso_pred: item.uso_pred || '',
+                        ocup: item.ocup || '',
                         area_graf: item.area_graf,
+                        area_cons: item.area_cons,
+                        avaluo_trr: item.avaluo_trr,
+                        avaluo_con: item.avaluo_con,
+                        avaluo_tot: item.avaluo_tot,
                         desprov: item.desprov || '',
                         descan: item.descan || '',
-                        avaluo_tot: item.avaluo_tot,
                         geom: item.geom
                     }));
                     
@@ -1252,7 +1220,7 @@
         
         // Función para cargar un lote de predios
         async function loadBatchPredios(offset, limit) {
-            const url = `${SUPABASE_URL}/rest/v1/predios_texto?select=objectid,id_pred,tipo_pred,uso_pred,area_graf,desprov,descan,avaluo_tot,geom&offset=${offset}&limit=${limit}&order=objectid.asc`;
+            const url = `${SUPABASE_URL}/rest/v1/predios_texto?select=objectid,id_pred,tipo_pred,ocup,area_graf,area_cons,avaluo_trr,avaluo_con,avaluo_tot,desprov,descan,geom&offset=${offset}&limit=${limit}&order=objectid.asc`;
             
             const response = await fetch(url, {
                 headers: {
@@ -1319,11 +1287,14 @@
         function crearPopupPredio(item) {
             return `
                 <div class="popup-custom">
-                    <div class="popup-title">🏘️ Predio: ${item.id_pred || 'N/A'}</div>
-                    <div class="popup-field"><strong>ID:</strong> ${item.objectid || 'N/A'}</div>
-                    <div class="popup-field"><strong>Tipo:</strong> ${item.tipo_pred || 'N/A'}</div>
-                    <div class="popup-field"><strong>Uso:</strong> ${item.uso_pred || 'N/A'}</div>
-                    <div class="popup-field"><strong>Área:</strong> ${item.area_graf ? item.area_graf + ' m²' : 'N/A'}</div>
+                    <div class="popup-title">🏘️ Predio ${item.tipo_pred || 'N/A'}</div>
+                    <div class="popup-field"><strong>Clave catastral:</strong> ${item.id_pred || 'N/A'}</div>
+                    <div class="popup-field"><strong>Propietario:</strong> ${item.ocup || 'N/A'}</div>
+                    <div class="popup-field"><strong>Área del terreno:</strong> ${item.area_graf ? item.area_graf + ' m²' : 'N/A'}</div>
+                    <div class="popup-field"><strong>Área de construcción:</strong> ${item.area_cons ? item.area_cons + ' m²' : 'N/A'}</div>
+                    <div class="popup-field"><strong>Avalúo del terreno:</strong> ${item.avaluo_trr ? '$' + item.avaluo_trr.toLocaleString() : 'N/A'}</div>
+                    <div class="popup-field"><strong>Avalúo construcción:</strong> ${item.avaluo_con ? '$' + item.avaluo_con.toLocaleString() : 'N/A'}</div>
+                    <div class="popup-field"><strong>Avalúo total:</strong> ${item.avaluo_tot ? '$' + item.avaluo_tot.toLocaleString() : 'N/A'}</div>
                 </div>
             `;
         }
@@ -1339,17 +1310,9 @@
         }
         
         // Función para cargar agua potable
-        async function cargarAgua(filtros = {}) {
+        async function cargarAgua() {
             try {
-                let query = `${SUPABASE_URL}/rest/v1/red_agua_potable?select=id,OBJECTID,Layer,AGUA,AREA,PAR_BARRIO,Shape_Leng,geom`;
-                
-                const conditions = [];
-                if (filtros.agua) conditions.push(`AGUA.ilike.%${filtros.agua}%`);
-                if (filtros.barrio) conditions.push(`PAR_BARRIO.ilike.%${filtros.barrio}%`);
-                
-                if (conditions.length > 0) query += `&${conditions.join('&')}`;
-                
-                query += '&limit=500';
+                const query = `${SUPABASE_URL}/rest/v1/red_agua_potable?select=id,OBJECTID,Layer,AGUA,AREA,PAR_BARRIO,Shape_Leng,geom&limit=500`;
                 
                 const response = await fetch(query, {
                     headers: {
@@ -1362,7 +1325,6 @@
                     const data = await response.json();
                     currentAguaData = data;
                     renderizarAgua(data);
-                    cargarBarriosDisponibles(data);
                 }
             } catch (error) {
                 console.error('Error cargando agua potable:', error);
@@ -1406,16 +1368,9 @@
         }
         
         // Función para cargar alcantarillado
-        async function cargarAlcantarillado(filtros = {}) {
+        async function cargarAlcantarillado() {
             try {
-                let query = `${SUPABASE_URL}/rest/v1/red_alcantarillado_sanitario?select=id,OBJECTID,Entity,Layer,Color,Linetype,Elevation,SANITARIO,Shape_Leng,geom`;
-                
-                const conditions = [];
-                if (filtros.sanitario) conditions.push(`SANITARIO.ilike.%${filtros.sanitario}%`);
-                
-                if (conditions.length > 0) query += `&${conditions.join('&')}`;
-                
-                query += '&limit=500';
+                const query = `${SUPABASE_URL}/rest/v1/red_alcantarillado_sanitario?select=id,OBJECTID,Entity,Layer,Color,Linetype,Elevation,SANITARIO,Shape_Leng,geom&limit=500`;
                 
                 const response = await fetch(query, {
                     headers: {
@@ -1470,17 +1425,9 @@
         }
         
         // Función para cargar vías
-        async function cargarVias(filtros = {}) {
+        async function cargarVias() {
             try {
-                let query = `${SUPABASE_URL}/rest/v1/vias?select=id,OBJECTID,NOMBRE,PAR_BARRIO,Shape_Leng,Tipo,geom`;
-                
-                const conditions = [];
-                if (filtros.nombre) conditions.push(`NOMBRE.ilike.%${filtros.nombre}%`);
-                if (filtros.tipo) conditions.push(`Tipo.eq.${filtros.tipo}`);
-                
-                if (conditions.length > 0) query += `&${conditions.join('&')}`;
-                
-                query += '&limit=500';
+                const query = `${SUPABASE_URL}/rest/v1/vias?select=id,OBJECTID,NOMBRE,PAR_BARRIO,Shape_Leng,Tipo,geom&limit=500`;
                 
                 const response = await fetch(query, {
                     headers: {
@@ -1573,7 +1520,7 @@
                     renderizarRecoleccion(data);
                 }
             } catch (error) {
-                console.error('Error cargando rutas de recolección:', error);
+                console.error('Error cargando rutas de recolección de basura:', error);
             }
         }
         
@@ -1598,7 +1545,7 @@
                     
                     recoleccionLayer.addLayer(layer);
                 } catch (e) {
-                    console.error('Error renderizando ruta de recolección:', e);
+                    console.error('Error renderizando ruta de recolección de basura:', e);
                 }
             });
         }
@@ -1607,23 +1554,9 @@
         function crearPopupRecoleccion(item) {
             return `
                 <div class="popup-custom">
-                    <div class="popup-title">🗑️ Ruta de Recolección</div>
+                    <div class="popup-title">🗑️ Ruta de Recolección de Basura</div>
                 </div>
             `;
-        }
-        
-        // Función para cargar barrios disponibles
-        function cargarBarriosDisponibles(data) {
-            const select = document.getElementById('filterBarrio');
-            const barrios = [...new Set(data.map(item => item.PAR_BARRIO).filter(Boolean))];
-            
-            select.innerHTML = '<option value="">Todos los barrios</option>';
-            barrios.forEach(barrio => {
-                const option = document.createElement('option');
-                option.value = barrio;
-                option.textContent = barrio;
-                select.appendChild(option);
-            });
         }
         
         // Función para aplicar filtros de predios
@@ -1644,41 +1577,10 @@
             renderizarPredios(filtered);
         }
         
-        // Función para aplicar filtros de agua
-        function aplicarFiltrosAgua() {
-            const filtros = {
-                agua: document.getElementById('searchAgua').value.trim(),
-                barrio: document.getElementById('filterBarrio').value
-            };
-            cargarAgua(filtros);
-        }
-        
-        // Función para aplicar filtros de alcantarillado
-        function aplicarFiltrosAlcantarillado() {
-            const filtros = {
-                sanitario: document.getElementById('searchAlcantarillado').value.trim()
-            };
-            cargarAlcantarillado(filtros);
-        }
-        
-        // Función para aplicar filtros de vías
-        function aplicarFiltrosVias() {
-            const filtros = {
-                nombre: document.getElementById('searchVias').value.trim(),
-                tipo: document.getElementById('filterTipoVia').value
-            };
-            cargarVias(filtros);
-        }
-        
         // Función para limpiar filtros
         function limpiarFiltros() {
             document.getElementById('searchPredio').value = '';
             document.getElementById('filterTipoPredio').value = '';
-            document.getElementById('searchAgua').value = '';
-            document.getElementById('filterBarrio').value = '';
-            document.getElementById('searchAlcantarillado').value = '';
-            document.getElementById('searchVias').value = '';
-            document.getElementById('filterTipoVia').value = '';
             
             cargarPrediosIniciales();
             cargarAgua();
