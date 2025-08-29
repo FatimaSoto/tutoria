@@ -98,6 +98,10 @@
             background: linear-gradient(45deg, #667eea, #764ba2);
         }
         
+        .stat-card.intervencion {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+        
         .controls {
             margin-bottom: 20px;
         }
@@ -155,6 +159,10 @@
         
         .btn.reportes {
             background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+        
+        .btn.intervencion {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
         }
         
         .btn.secondary {
@@ -456,6 +464,11 @@
                 grid-template-columns: 1fr;
             }
         }
+
+  	/* Estilos para el control de capas base */
+        .leaflet-control-layers-toggle {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cGF0aCBkPSJNMTYgMkM4LjI2OCAyIDIgOC4yNjggMiAxNnM2LjI2OCAxNCAxNCAxNCAxNC02LjI2OCAxNC0xNFMyMy43MzIgMiAxNiAyem0wIDI2Yy02LjYxNyAwLTEyLTUuMzgzLTEyLTEyczUuMzgzLTEyIDEyLTEyIDEyIDUuMzgzIDEyIDEyLTUuMzgzIDEyLTEyIDEyeiIvPjxwYXRoIGQPSJNMTYgOGMtNC40MTggMC04IDMuNTgyLTggOHMzLjU4MiA4IDggOCA4LTMuNTgyIDgtOC0zLjU4Mi04LTgtOHptMCAxNGMtMy4zMTQgMC02LTIuNjg2LTYtNnMyLjY4Ni02IDYtNiA2IDIuNjg2IDYgNi0yLjY4NiA2LTYgNnoiLz48L3N2Zz4=') !important;
+        }
     </style>
 </head>
 <body>
@@ -519,6 +532,25 @@
             
             <!-- Controles para modo Servicios -->
             <div id="servicios-controls" style="display: none;">
+                <div class="stats">
+                    <div class="stat-card agua">
+                        <h3 id="totalAgua">0</h3>
+                        <p>Red Agua</p>
+                    </div>
+                    <div class="stat-card alcantarillado">
+                        <h3 id="totalAlcantarillado">0</h3>
+                        <p>Alcantarillado</p>
+                    </div>
+                    <div class="stat-card vias">
+                        <h3 id="totalVias">0</h3>
+                        <p>Vías</p>
+                    </div>
+                    <div class="stat-card intervencion">
+                        <h3 id="totalIntervenciones">0</h3>
+                        <p>Intervenciones</p>
+                    </div>
+                </div>
+                
                 <div class="layer-controls">
                     <h3>Capas de Servicios</h3>
                     <div class="layer-toggle">
@@ -549,23 +581,31 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+                    <div class="layer-toggle">
+                        <label for="toggleIntervencion">🏗️ Intervención Territorial</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleIntervencion">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
                 
                 <div class="controls">
-                    <button class="btn recoleccion" onclick="cargarRecoleccion()">🗑️ Cargar Rutas de Recolección de Basura</button>
+                    <button class="btn recoleccion" onclick="cargarRecoleccion()">🗑️ Cargar Rutas de Recolección</button>
+                    <button class="btn intervencion" onclick="cargarIntervencionTerritorial()">🏗️ Cargar Intervenciones</button>
                     <button class="btn secondary" onclick="limpiarFiltros()">🗑️ Limpiar Filtros</button>
                     <button class="btn secondary" onclick="centrarEnElPangui()">📍 Centrar Mapa</button>
                 </div>
             </div>
             
-            <!-- Controles para modo Reportes (versión funcional de valida.html) -->
+            <!-- Controles para modo Reportes -->
             <div id="reportes-controls" style="display: none;">
                 <div class="layer-controls">
                     <h3>Reportes</h3>
                     <div class="layer-toggle">
                         <label for="toggleReportes">📍 Mostrar Reportes</label>
                         <label class="switch">
-                            <input type="checkbox" id="toggleReportes" checked>
+                            <input type="checkbox" id="toggleReportes">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -589,21 +629,21 @@
                 
                 <div id="reportes-status" class="status"></div>
                 
-                <!-- Formulario de reportes (versión funcional de valida.html) -->
+                <!-- Formulario de reportes -->
                 <div id="form-container-reportes" class="form-container-reportes">
                     <h3>📋 Reportar Problema</h3>
                     <div class="coordinates" id="reportes-coordinates"></div>
                     <form id="reportForm">
                         <div class="form-group">
-			    <label for="nombreReporte">👤 Nombre completo:</label>
-			    <input type="text" id="nombreReporte" required placeholder="Ingrese su nombre completo">
- 			</div>
-        		<div class="form-group">
-            		    <label for="telefonoReporte">📞 Teléfono de contacto:</label>
+                            <label for="nombreReporte">👤 Nombre completo:</label>
+                            <input type="text" id="nombreReporte" required placeholder="Ingrese su nombre completo">
+                        </div>
+                        <div class="form-group">
+                            <label for="telefonoReporte">📞 Teléfono de contacto:</label>
                             <input type="tel" id="telefonoReporte" required placeholder="Ingrese su número de teléfono">
-			</div>
-        		<div class="form-group">
-			    <label for="fechaReporte">📅 Fecha del problema:</label>
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaReporte">📅 Fecha del problema:</label>
                             <input type="date" id="fechaReporte" required>
                         </div>
                         <div class="form-group">
@@ -663,6 +703,11 @@
                 <div class="spinner"></div>
                 <p>Cargando rutas de recolección de basura...</p>
             </div>
+            
+            <div id="loadingIntervencion" class="loading">
+                <div class="spinner"></div>
+                <p>Cargando intervenciones territoriales...</p>
+            </div>
         </div>
         
         <div class="map-container">
@@ -694,9 +739,15 @@
         const viasLayer = L.layerGroup();
         const recoleccionLayer = L.layerGroup();
         const reportesLayer = L.layerGroup();
+        const intervencionLayer = L.layerGroup();
+
+ 	// Variables para las capas base
+        let osmLayer, satelliteLayer, terrainLayer;
+        let baseLayers = {};
         
         let currentPrediosData = [], currentAguaData = [], currentAlcantarilladoData = [], 
-            currentViasData = [], currentRecoleccionData = [], currentReportesData = [];
+            currentViasData = [], currentRecoleccionData = [], currentReportesData = [],
+            currentIntervencionData = [];
         
         let loading = false, zoom = 12, timer;
         let viewMode = 'predios';
@@ -709,20 +760,43 @@
 
         // Función para inicializar el mapa
         function initMap() {
-            map = L.map('map').setView(EL_PANGUI_COORDS, zoom);
-            
-            // Capa base
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            // Crear las capas base
+            osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap'
-            }).addTo(map);
+            });
             
-            // Añadir capas al mapa
+            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            });
+            
+            terrainLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)'
+            });
+            
+            // Configurar las capas base
+            baseLayers = {
+                "OpenStreetMap": osmLayer,
+                "Satélite": satelliteLayer,
+                "Tierra": terrainLayer
+            };
+            
+            // Inicializar el mapa con OpenStreetMap como capa predeterminada
+            map = L.map('map', {
+                center: EL_PANGUI_COORDS,
+                zoom: zoom,
+                layers: [osmLayer]
+            });
+            
+            // Añadir control de capas base
+            L.control.layers(baseLayers).addTo(map);
+            
+            // Añadir capas al mapa (solo las que deben estar visibles al inicio)
             prediosLayer.addTo(map);
             aguaLayer.addTo(map);
             alcantarilladoLayer.addTo(map);
             viasLayer.addTo(map);
             recoleccionLayer.addTo(map);
-            reportesLayer.addTo(map);
+            // NOTA: reportesLayer e intervencionLayer NO se añaden al inicio
             
             // Configurar toggles de capas
             document.getElementById('togglePredios').addEventListener('change', function(e) {
@@ -746,7 +820,19 @@
             });
             
             document.getElementById('toggleReportes').addEventListener('change', function(e) {
-                e.target.checked ? reportesLayer.addTo(map) : map.removeLayer(reportesLayer);
+                if (e.target.checked && currentReportesData.length === 0) {
+                    cargarReportesExistentes();
+                } else {
+                    e.target.checked ? reportesLayer.addTo(map) : map.removeLayer(reportesLayer);
+                }
+            });
+            
+            document.getElementById('toggleIntervencion').addEventListener('change', function(e) {
+                if (e.target.checked && currentIntervencionData.length === 0) {
+                    cargarIntervencionTerritorial();
+                } else {
+                    e.target.checked ? intervencionLayer.addTo(map) : map.removeLayer(intervencionLayer);
+                }
             });
             
             // Eventos del mapa
@@ -767,10 +853,91 @@
             cargarAlcantarillado();
             cargarVias();
             cargarRecoleccion();
-            cargarReportesExistentes();
+            // Nota: No cargar reportes ni intervenciones al inicio
         }
         
-        // Función para configurar eventos del modo reportes (versión funcional de valida.html)
+        // Función para cargar los polígonos de intervención territorial
+        async function cargarIntervencionTerritorial() {
+            if (currentIntervencionData.length > 0) {
+                intervencionLayer.addTo(map);
+                return;
+            }
+
+            document.getElementById('loadingIntervencion').style.display = 'block';
+            updateStatus('Cargando intervenciones territoriales...');
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/poligonos_intervencion_territorial_wgs84?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentIntervencionData = data;
+                    renderizarIntervencionTerritorial(data);
+                    updateStatus(`✅ ${data.length} polígonos de intervención cargados`, 'success');
+                    
+                    // Actualizar estadísticas
+                    document.getElementById('totalIntervenciones').textContent = data.length;
+                    
+                    // Activar el toggle si no está activado
+                    document.getElementById('toggleIntervencion').checked = true;
+                    intervencionLayer.addTo(map);
+                } else {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error cargando intervenciones:', error);
+                updateStatus('❌ Error cargando intervenciones', 'error');
+            } finally {
+                document.getElementById('loadingIntervencion').style.display = 'none';
+            }
+        }
+
+        // Función para renderizar los polígonos de intervención
+        function renderizarIntervencionTerritorial(data) {
+            intervencionLayer.clearLayers();
+            
+            data.forEach(item => {
+                if (!item.geom) return;
+                
+                try {
+                    const geom = typeof item.geom === 'string' ? JSON.parse(item.geom) : item.geom;
+                    
+                    const layer = L.geoJSON(geom, {
+                        style: {
+                            color: '#f39c12',
+                            weight: 2,
+                            fillColor: '#f1c40f',
+                            fillOpacity: 0.4,
+                            opacity: 1
+                        }
+                    }).bindPopup(crearPopupIntervencion(item));
+                    
+                    intervencionLayer.addLayer(layer);
+                } catch (e) {
+                    console.error('Error renderizando intervención:', e);
+                }
+            });
+        }
+
+        // Función para crear el popup de intervención
+        function crearPopupIntervencion(item) {
+            return `
+                <div class="popup-custom">
+                    <div class="popup-title">🏗️ ${item.nombre || 'Intervención Territorial'}</div>
+                    ${item.tratamient ? `<div class="popup-field"><strong>Tratamiento:</strong> ${item.tratamient}</div>` : ''}
+                    ${item.ubicacion ? `<div class="popup-field"><strong>Ubicación:</strong> ${item.ubicacion}</div>` : ''}
+                    ${item.area ? `<div class="popup-field"><strong>Área:</strong> ${item.area}</div>` : ''}
+                    ${item.pits ? `<div class="popup-field"><strong>PITS:</strong> ${item.pits}</div>` : ''}
+                </div>
+            `;
+        }
+
+        // Función para configurar eventos del modo reportes
         function configurarEventosReportes() {
             map.off('click'); // Limpiar eventos anteriores
             
@@ -803,7 +970,7 @@
             });
         }
         
-        // Función para mostrar el formulario de reporte (versión funcional de valida.html)
+        // Función para mostrar el formulario de reporte
         function mostrarFormularioReporte(lat, lng) {
             document.getElementById('reportes-coordinates').innerHTML = `
                 <strong>📍 Ubicación seleccionada:</strong><br>
@@ -815,7 +982,7 @@
             document.getElementById('reportes-status').textContent = '📝 Completa el formulario para reportar el problema';
         }
         
-        // Función para cancelar reporte (versión funcional de valida.html)
+        // Función para cancelar reporte
         function cancelarReporte() {
             document.getElementById('form-container-reportes').classList.remove('active');
             document.getElementById('reportes-status').textContent = '';
@@ -827,7 +994,7 @@
             selectedReportPoint = null;
         }
         
-        // Función para enviar reporte (versión funcional de valida.html)
+        // Función para enviar reporte
         async function enviarReporte(e) {
             e.preventDefault();
             
@@ -871,7 +1038,7 @@
             }
         }
         
-        // Función para obtener ubicación del usuario (versión funcional de valida.html)
+        // Función para obtener ubicación del usuario
         function obtenerUbicacionUsuario() {
             if (!navigator.geolocation) {
                 alert('Tu navegador no soporta geolocalización');
@@ -915,7 +1082,7 @@
             );
         }
         
-        // Función para limpiar selección de reportes (versión funcional de valida.html)
+        // Función para limpiar selección de reportes
         function limpiarReportes() {
             if (currentReportMarker) {
                 map.removeLayer(currentReportMarker);
@@ -930,7 +1097,7 @@
             selectedReportPoint = null;
         }
         
-        // Función para cargar reportes existentes (versión funcional de valida.html)
+        // Función para cargar reportes existentes
         async function cargarReportesExistentes() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/reporte_usuarios?select=*`, {
@@ -946,6 +1113,10 @@
                     renderizarReportes(reports);
                     actualizarEstadisticasReportes(reports);
                     updateStatus(`✅ ${reports.length} reportes cargados`, 'success');
+                    
+                    // Activar el toggle si no está activado
+                    document.getElementById('toggleReportes').checked = true;
+                    reportesLayer.addTo(map);
                 }
             } catch (error) {
                 console.error('Error cargando reportes:', error);
@@ -953,7 +1124,7 @@
             }
         }
         
-        // Función para renderizar reportes en el mapa (versión funcional de valida.html)
+        // Función para renderizar reportes en el mapa
         function renderizarReportes(reports) {
             reportesLayer.clearLayers();
             reportMarkers = [];
@@ -1005,7 +1176,7 @@
             });
         }
         
-        // Función para actualizar estadísticas de reportes (versión funcional de valida.html)
+        // Función para actualizar estadísticas de reportes
         function actualizarEstadisticasReportes(reports) {
             document.getElementById('totalReportes').textContent = reports.length;
             
@@ -1013,7 +1184,7 @@
             document.getElementById('reportesPendientes').textContent = pendientes;
         }
         
-        // Función para crear popup de reporte (versión funcional de valida.html)
+        // Función para crear popup de reporte
         function crearPopupReporte(report) {
             return `
                 <div class="report-popup">
@@ -1031,7 +1202,7 @@
             `;
         }
         
-        // Función auxiliar para obtener iconos de servicio (versión funcional de valida.html)
+        // Función auxiliar para obtener iconos de servicio
         function getServiceIcon(service) {
             const icons = {
                 'Agua potable': '💧',
@@ -1043,7 +1214,7 @@
             return icons[service] || '📋';
         }
         
-        // Función auxiliar para obtener color por estado (versión funcional de valida.html)
+        // Función auxiliar para obtener color por estado
         function getColorByStatus(status) {
             const colors = {
                 'Reportado': '#dc3545',
@@ -1587,6 +1758,8 @@
             cargarAlcantarillado();
             cargarVias();
             cargarRecoleccion();
+            intervencionLayer.clearLayers();
+            currentIntervencionData = [];
         }
         
         // Función para centrar en El Pangui
